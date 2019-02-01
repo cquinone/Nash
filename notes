@@ -49,8 +49,6 @@ set up level manager, change level class to actually be instaces of each specifi
 ---> maybe not though, to save bounding box
 fix images (clean off odd color), check if background will mess with them
 maybe shift block or nash mask inward to stop weird side collisions
-STILL HAVENT FIXED LEFT/RIGHT ISSUES
-make lvl draw specific func (update too?) -> will be able to draw moving blocks
 --> moving blocks need way to deal with player interactions, will need to also update moving block masks
 --> so like add moving bool to block class
 

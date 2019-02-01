@@ -45,7 +45,7 @@ class Level1():
 		self.btm_left.shape		= (2,1)
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
-		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-100)]
+		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
 
 	def draw(self,screen):
 		for block in self.blocks:
