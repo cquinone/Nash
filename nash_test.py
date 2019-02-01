@@ -89,7 +89,7 @@ class Level1(Scene):
 		self.name = "lvl1"
 
 	def draw(self,screen):
-		screen.fill(BLACK)
+		screen.fill(WHITE)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
 			pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
@@ -127,17 +127,17 @@ class Nash(Player):
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name		= "Nash"
-		self.pic_right_idle 	= pygame.image.load("pics/nash_side_back.png").convert()
+		self.pic_right_idle 	= pygame.image.load("pics/nash_side.png").convert_alpha()
 		#self.pic_right_idle.set_colorkey(WHITE)
 		self.pic_right_idle 	= pygame.transform.scale(self.pic_right_idle, [self.width,self.height])
 		self.pic_left_idle		= pygame.transform.flip(self.pic_right_idle,True,False)
 
-		self.pic_right_walk 	= pygame.image.load("pics/nash_walk_arms.png").convert()
+		self.pic_right_walk 	= pygame.image.load("pics/nash_walk_arms.png").convert_alpha()
 		#self.pic_right_walk.set_colorkey(WHITE)
 		self.pic_right_walk 	= pygame.transform.scale(self.pic_right_walk, [self.width,self.height])
 		self.pic_left_walk		= pygame.transform.flip(self.pic_right_walk,True,False)
 		
-		self.jump_pic_right		= pygame.image.load("pics/nash_jump_right.png").convert()
+		self.jump_pic_right		= pygame.image.load("pics/nash_jump_right.png").convert_alpha()
 		#self.jump_pic_right.set_colorkey(WHITE)
 		self.jump_pic_right 	= pygame.transform.scale(self.jump_pic_right, [self.width,self.height])
 		self.jump_pic_left	 	= pygame.transform.flip(self.jump_pic_right, True,False)
