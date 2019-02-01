@@ -53,7 +53,7 @@ class Block():
 		self.pos = [x,y]
 		self.width 	= 50
 		self.height = 20
-		self.pic = pygame.image.load("block.png").convert()
+		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,50,20) 
 
@@ -71,17 +71,17 @@ class Nash(Player):
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name		= "Nash"
-		self.pic_right_idle 	= pygame.image.load("nash_side_back.png").convert()
+		self.pic_right_idle 	= pygame.image.load("pics/nash_side_back.png").convert()
 		self.pic_right_idle.set_colorkey(WHITE)
 		self.pic_right_idle 	= pygame.transform.scale(self.pic_right_idle, [self.width,self.height])
 		self.pic_left_idle		= pygame.transform.flip(self.pic_right_idle,True,False)
 
-		self.pic_right_walk 	= pygame.image.load("nash_walk_arms.png").convert()
+		self.pic_right_walk 	= pygame.image.load("pics/nash_walk_arms.png").convert()
 		self.pic_right_walk.set_colorkey(WHITE)
 		self.pic_right_walk 	= pygame.transform.scale(self.pic_right_walk, [self.width,self.height])
 		self.pic_left_walk		= pygame.transform.flip(self.pic_right_walk,True,False)
 		
-		self.jump_pic_right		= pygame.image.load("nash_jump_right.png").convert()
+		self.jump_pic_right		= pygame.image.load("pics/nash_jump_right.png").convert()
 		self.jump_pic_right.set_colorkey(WHITE)
 		self.jump_pic_right 	= pygame.transform.scale(self.jump_pic_right, [self.width,self.height])
 		self.jump_pic_left	 	= pygame.transform.flip(self.jump_pic_right, True,False)
@@ -138,7 +138,6 @@ class Nash(Player):
 					self.walk = False
 				if self.walk == False or self.yvel != 0: #also capture no walking in air!
 					screen.blit(self.pic_right_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 					self.walk = True
 					if self.stand_count == 4:
 						self.walk_timer = 5
@@ -147,20 +146,16 @@ class Nash(Player):
 						self.stand_count += 1
 				else:
 					screen.blit(self.pic_right_walk,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.walk_points[0][0],self.walk_points[0][1]],[self.walk_points[1][0],self.walk_points[1][1]],[self.walk_points[2][0],self.walk_points[2][1]],[self.walk_points[3][0],self.walk_points[3][1]]], 2)
 					self.walk_timer -= 1
 			else:
 				screen.blit(self.jump_pic_right,self.pos)
-				pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 
 		if self.dir == "left":
 			if not self.jump:
 				if self.walk_timer == 0:
 					self.walk = False
-	
 				if self.walk == False or self.yvel != 0:
 					screen.blit(self.pic_left_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 					self.walk = True
 					if self.stand_count == 4:
 						self.walk_timer = 5
@@ -169,11 +164,9 @@ class Nash(Player):
 						self.stand_count += 1
 				else:
 					screen.blit(self.pic_left_walk,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.walk_points[0][0],self.walk_points[0][1]],[self.walk_points[1][0],self.walk_points[1][1]],[self.walk_points[2][0],self.walk_points[2][1]],[self.walk_points[3][0],self.walk_points[3][1]]], 2)
 					self.walk_timer -= 1
 			else:
 				screen.blit(self.jump_pic_left,self.pos)
-				pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 
 		if self.dir == "idle":
 			self.walk = False
@@ -181,21 +174,15 @@ class Nash(Player):
 			if self.old_dir == "left":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_left,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_left_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 			if self.old_dir == "right":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_right,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_right_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 		if self.dir != "idle":
 			self.old_dir = self.dir
-
-
 
 	def collide(self,new_x,new_y,fall,blocks,lvl):
 		old_x = self.pos[0]   #save old position
@@ -262,8 +249,8 @@ def main():
 	pygame.mixer.music.load('BeepBox-Song.wav')
 	pygame.mixer.music.play(-1)
 	#load images
-	nash_intro = pygame.image.load("nash_final.png").convert()
-	call = pygame.image.load("call.png").convert()
+	nash_intro = pygame.image.load("pics/nash_final.png").convert()
+	call = pygame.image.load("pics/call.png").convert()
 	#add some intial objects
 	nash = Nash()
 	block_1 = Block(100,HEIGHT-40)
@@ -332,8 +319,6 @@ def main():
 			nash.update_pos(screen,blocks,lvl1) #this finds new pos of nash based on inputs, and draws him
 			screen.blit(block_1.pic,block_1.pos)
 			screen.blit(block_2.pic,block_2.pos)
-			pygame.draw.polygon(screen, GREEN,[[block_1.points[0][0],block_1.points[0][1]],[block_1.points[1][0],block_1.points[1][1]],[block_1.points[2][0],block_1.points[2][1]],[block_1.points[3][0],block_1.points[3][1]]], 2)
-			pygame.draw.polygon(screen, RED,[[lvl1.points[0][0],lvl1.points[0][1]],[lvl1.points[1][0],lvl1.points[1][1]],[lvl1.points[2][0],lvl1.points[2][1]],[lvl1.points[3][0],lvl1.points[3][1]]], 2)
 		# --- Go ahead and update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
