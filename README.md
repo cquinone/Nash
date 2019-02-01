@@ -1,1 +1,2 @@
 # nash
+Nash game
