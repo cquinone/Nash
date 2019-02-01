@@ -1,0 +1,52 @@
+use: http://inventwithpython.com/pygame/chapter9.html
+arial.tff included to try and load font from
+need nash drawings, backgroundart, title, all that
+
+levels  - https://stackoverflow.com/questions/14700889/pygame-level-menu-states
+          http://www.learnpygame.com/2015/08/game-saving-new-levels-and-pickles.html
+
+phys - https://www.pygame.org/project/780/5960
+
+need separate images for direction facing (to prevent weird image flip junk) 
+need sep images for frames of walk -> each dir too
+
+
+
+jan 29
+----------------------
+set new dirs for air movement, so like if jump or maybe non-0 yvel
+-> then use same images but slower side speed (more realistic)
+99,4,4 -> rgb brown
+255,224,189 -> rgb white skin
+
+keep side move on jump without hold?
+maybe make not lower x speed in air, but x speed that decays somehow...
+
+jan 30
+---------------------
+masking sizes:
+from 5 to 19 for idle side x range
+from 0 to 34 for idle side y range
+from 4 to 18 for walk side x range
+from 0 to 34 for walk side y range
+
+somehow adjust key capture to check which was pressed most recently, then override with that one
+or maybe like if you get to right and left is still pressed (no unpress?) then override?
+
+jan 31
+---------------------
+need buffer on masks? that way can't "fall" into it
+^right now, getting stuck when trying to jump out of block
+or change falling to make sure you never have y corrds that dip into block (somehow do now)
+
+Might be that need masks and check for jump/fall state
+--> implement those too and check
+
+
+feb 1
+---------------------
+set up level manager, change level class to actually be instaces of each specific level
+---> maybe not though, to save bounding box
+fix images (clean off odd color), check if background will mess with them
+maybe shift block or nash mask inward to stop weird side collisions
+STILL HAVENT FIXED LEFT/RIGHT ISSUES
