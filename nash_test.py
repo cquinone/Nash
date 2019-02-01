@@ -45,6 +45,16 @@ class Level1():
 		self.btm_left.shape		= (2,1)
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
+		block_1 = Block(100,HEIGHT-40)
+		block_2 = Block(200,HEIGHT-60)
+		self.blocks = []
+		self.blocks.append(block_1)
+		self.blocks.append(block_2)
+
+	def draw(self,screen):
+		for block in self.blocks:
+			screen.blit(block.pic,block.pos)
+			pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
 
 class Block():
 	def __init__(self,x,y):
@@ -93,14 +103,14 @@ class Nash(Player):
 		self.stand_count = 0
 		self.walk_timer = 5
 
-	def update_pos(self,screen,blocks,lvl):
-		new_x = self.pos[0] #defualt values
+	def update_pos(self,screen,lvl):
+		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
 		#first check if you're jumping still
 		if self.jump:
 			self.yvel = self.yvel + g*dt
 			new_y = self.pos[1] + self.yvel*dt
-			if self.collide(new_x,new_y,self.fall,blocks,lvl):
+			if self.collide(new_x,new_y,self.fall,lvl):
 				self.yvel = 0
 				self.jump = False
 			else:
@@ -109,7 +119,7 @@ class Nash(Player):
 			self.yvel	= self.yvel + g*dt
 			new_y 		= self.pos[1] + (self.yvel)*dt #check if we are falling by pushing down a lil
 			self.fall = True
-			if self.collide(new_x,new_y,self.fall,blocks,lvl): #not falling
+			if self.collide(new_x,new_y,self.fall,lvl): #not falling
 				self.yvel = 0
 				self.fall = False
 			else:
@@ -120,7 +130,7 @@ class Nash(Player):
 		if self.dir == "left":
 			new_x = self.pos[0] - 6
 		#now finally check if new_x will cause a collision
-		if not self.collide(new_x,new_y,self.fall,blocks,lvl):
+		if not self.collide(new_x,new_y,self.fall,lvl):
 			self.pos[0] = new_x
 		#now update masks!
 		self.idle_points,self.idle_poly = mask(self,8,30,54)
@@ -192,10 +202,10 @@ class Nash(Player):
 
 
 
-	def collide(self,new_x,new_y,fall,blocks,lvl):
+	def collide(self,new_x,new_y,fall,lvl):
 		old_x = self.pos[0]   #save old position
 		old_y = self.pos[1]	
-		for block in blocks:
+		for block in lvl.blocks:
 			#save old pos, check with masks updated for new one
 			if self.jump: 
 				self.pos[1] = new_y
@@ -261,11 +271,6 @@ def main():
 	call = pygame.image.load("pics/call.png").convert()
 	#add some intial objects
 	nash = Nash()
-	block_1 = Block(100,HEIGHT-40)
-	block_2 = Block(200,HEIGHT-60)
-	blocks = [] #temp for collide func
-	blocks.append(block_1)
-	blocks.append(block_2)
 	lvl1 = 	Level1(WIDTH,HEIGHT)
 	# -------- Main Program Loop -----------
 	while not done:
@@ -322,13 +327,10 @@ def main():
 
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
-			screen.fill(WHITE) #for now, clean it off --> will need to start event manager
+			screen.fill(WHITE) #for now, clean it off so we can redraw --> will need to start event manager?
 			#level.draw()  -> will be draw location for current level (before nash!)
-			nash.update_pos(screen,blocks,lvl1) #this finds new pos of nash based on inputs, and draws him
-			screen.blit(block_1.pic,block_1.pos)
-			screen.blit(block_2.pic,block_2.pos)
-			pygame.draw.polygon(screen, GREEN,[[block_1.points[0][0],block_1.points[0][1]],[block_1.points[1][0],block_1.points[1][1]],[block_1.points[2][0],block_1.points[2][1]],[block_1.points[3][0],block_1.points[3][1]]], 2)
-			pygame.draw.polygon(screen, RED,[[lvl1.points[0][0],lvl1.points[0][1]],[lvl1.points[1][0],lvl1.points[1][1]],[lvl1.points[2][0],lvl1.points[2][1]],[lvl1.points[3][0],lvl1.points[3][1]]], 2)
+			nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
+			lvl1.draw(screen) #draw level now
 		# --- Go ahead and update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second

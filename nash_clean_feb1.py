@@ -3,6 +3,7 @@ import pygame.font
 from pygame.locals import *
 from shapely.geometry import Polygon,Point
 import numpy as np
+from matplotlib import pyplot as plt
 import copy
 
 # Define some colors
@@ -12,7 +13,6 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
  
 # Constants
-IDLE = -1
 WIDTH = 700
 HEIGHT = 500
 dt = 1/float(4)
@@ -45,6 +45,16 @@ class Level1():
 		self.btm_left.shape		= (2,1)
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
+		block_1 = Block(100,HEIGHT-40)
+		block_2 = Block(200,HEIGHT-60)
+		self.blocks = []
+		self.blocks.append(block_1)
+		self.blocks.append(block_2)
+
+	def draw(self,screen):
+		for block in self.blocks:
+			screen.blit(block.pic,block.pos)
+			pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
 
 class Block():
 	def __init__(self,x,y):
@@ -58,9 +68,6 @@ class Block():
 class Player():
 	def __init__(self):
 		self.timer = 0
-
-	def yo():
-		print("WORKED!")
 
 class Nash(Player):
 	def __init__(self):
@@ -96,14 +103,14 @@ class Nash(Player):
 		self.stand_count = 0
 		self.walk_timer = 5
 
-	def update_pos(self,screen,blocks,lvl):
-		new_x = self.pos[0] #defualt values
+	def update_pos(self,screen,lvl):
+		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
 		#first check if you're jumping still
 		if self.jump:
 			self.yvel = self.yvel + g*dt
 			new_y = self.pos[1] + self.yvel*dt
-			if self.collide(new_x,new_y,self.fall,blocks,lvl):
+			if self.collide(new_x,new_y,self.fall,lvl):
 				self.yvel = 0
 				self.jump = False
 			else:
@@ -112,7 +119,7 @@ class Nash(Player):
 			self.yvel	= self.yvel + g*dt
 			new_y 		= self.pos[1] + (self.yvel)*dt #check if we are falling by pushing down a lil
 			self.fall = True
-			if self.collide(new_x,new_y,self.fall,blocks,lvl): #not falling
+			if self.collide(new_x,new_y,self.fall,lvl): #not falling
 				self.yvel = 0
 				self.fall = False
 			else:
@@ -123,7 +130,7 @@ class Nash(Player):
 		if self.dir == "left":
 			new_x = self.pos[0] - 6
 		#now finally check if new_x will cause a collision
-		if not self.collide(new_x,new_y,self.fall,blocks,lvl):
+		if not self.collide(new_x,new_y,self.fall,lvl):
 			self.pos[0] = new_x
 		#now update masks!
 		self.idle_points,self.idle_poly = mask(self,8,30,54)
@@ -136,6 +143,7 @@ class Nash(Player):
 					self.walk = False
 				if self.walk == False or self.yvel != 0: #also capture no walking in air!
 					screen.blit(self.pic_right_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 					self.walk = True
 					if self.stand_count == 4:
 						self.walk_timer = 5
@@ -144,16 +152,20 @@ class Nash(Player):
 						self.stand_count += 1
 				else:
 					screen.blit(self.pic_right_walk,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.walk_points[0][0],self.walk_points[0][1]],[self.walk_points[1][0],self.walk_points[1][1]],[self.walk_points[2][0],self.walk_points[2][1]],[self.walk_points[3][0],self.walk_points[3][1]]], 2)
 					self.walk_timer -= 1
 			else:
 				screen.blit(self.jump_pic_right,self.pos)
+				pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 
 		if self.dir == "left":
 			if not self.jump:
 				if self.walk_timer == 0:
 					self.walk = False
+	
 				if self.walk == False or self.yvel != 0:
 					screen.blit(self.pic_left_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 					self.walk = True
 					if self.stand_count == 4:
 						self.walk_timer = 5
@@ -162,9 +174,11 @@ class Nash(Player):
 						self.stand_count += 1
 				else:
 					screen.blit(self.pic_left_walk,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.walk_points[0][0],self.walk_points[0][1]],[self.walk_points[1][0],self.walk_points[1][1]],[self.walk_points[2][0],self.walk_points[2][1]],[self.walk_points[3][0],self.walk_points[3][1]]], 2)
 					self.walk_timer -= 1
 			else:
 				screen.blit(self.jump_pic_left,self.pos)
+				pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 
 		if self.dir == "idle":
 			self.walk = False
@@ -172,20 +186,26 @@ class Nash(Player):
 			if self.old_dir == "left":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_left,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_left_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 			if self.old_dir == "right":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_right,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_right_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 		if self.dir != "idle":
 			self.old_dir = self.dir
 
-	def collide(self,new_x,new_y,fall,blocks,lvl):
+
+
+	def collide(self,new_x,new_y,fall,lvl):
 		old_x = self.pos[0]   #save old position
 		old_y = self.pos[1]	
-		for block in blocks:
+		for block in lvl.blocks:
 			#save old pos, check with masks updated for new one
 			if self.jump: 
 				self.pos[1] = new_y
@@ -221,7 +241,7 @@ class Nash(Player):
 
 	def outside(self,lvl,nash_poly):
 		rel = lvl.poly.relate(nash_poly)
-		return rel[0] == '2' and rel[6] == 'F'
+		return rel[0] == '2' and rel[6] == 'F' #if at least one point is in inside and nothing outside?
 
 def main():
 	pygame.init()
@@ -244,18 +264,13 @@ def main():
 	Titlefont =  pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscrb.tff'), 42)
 	smallfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscr.tff'), 12)
 	#music
-	pygame.mixer.music.load('BeepBox-Song.wav')
-	pygame.mixer.music.play(-1)
+	#pygame.mixer.music.load('BeepBox-Song.wav')
+	#pygame.mixer.music.play(-1)
 	#load images
 	nash_intro = pygame.image.load("pics/nash_final.png").convert()
 	call = pygame.image.load("pics/call.png").convert()
 	#add some intial objects
 	nash = Nash()
-	block_1 = Block(100,HEIGHT-40)
-	block_2 = Block(200,HEIGHT-60)
-	blocks = [] #temp for collide func
-	blocks.append(block_1)
-	blocks.append(block_2)
 	lvl1 = 	Level1(WIDTH,HEIGHT)
 	# -------- Main Program Loop -----------
 	while not done:
@@ -312,11 +327,10 @@ def main():
 
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
-			screen.fill(WHITE) #for now, clean it off --> will need to start event manager
+			screen.fill(WHITE) #for now, clean it off so we can redraw --> will need to start event manager?
 			#level.draw()  -> will be draw location for current level (before nash!)
-			nash.update_pos(screen,blocks,lvl1) #this finds new pos of nash based on inputs, and draws him
-			screen.blit(block_1.pic,block_1.pos)
-			screen.blit(block_2.pic,block_2.pos)
+			nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
+			lvl1.draw(screen) #draw level now
 		# --- Go ahead and update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
