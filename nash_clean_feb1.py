@@ -45,7 +45,7 @@ class Level1():
 		self.btm_left.shape		= (2,1)
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
-		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-100)]
+		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
 
 	def draw(self,screen):
 		for block in self.blocks:
@@ -311,7 +311,6 @@ def main():
 		# Intro Page ---> Runs if no ENTER KEY events have happened?
 		if intro_trigger and not IT_talk_trigger:
 			screen.fill(WHITE)
-			#screen.blit(nash_real, [0,0])
 			screen.blit(nash_intro, [125,100])
  
 			if flickr_count < 20:
