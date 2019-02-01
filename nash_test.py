@@ -3,7 +3,7 @@ import pygame.font
 from pygame.locals import *
 from shapely.geometry import Polygon,Point
 import numpy as np
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import copy
 
 # Define some colors
@@ -31,7 +31,7 @@ def mask(Nash,xmin,xmax,ymax):
 	poly   = Polygon(points)
 	return points, poly
 
-class Level():
+class Level1():
 	def __init__(self,width,height):
 		self.width	= width
 		self.height	= height
@@ -51,7 +51,7 @@ class Block():
 		self.pos = [x,y]
 		self.width 	= 50
 		self.height = 20
-		self.pic = pygame.image.load("block.png").convert()
+		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,50,20) 
 
@@ -66,17 +66,17 @@ class Nash(Player):
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name		= "Nash"
-		self.pic_right_idle 	= pygame.image.load("nash_side_back.png").convert()
+		self.pic_right_idle 	= pygame.image.load("pics/nash_side_back.png").convert()
 		self.pic_right_idle.set_colorkey(WHITE)
 		self.pic_right_idle 	= pygame.transform.scale(self.pic_right_idle, [self.width,self.height])
 		self.pic_left_idle		= pygame.transform.flip(self.pic_right_idle,True,False)
 
-		self.pic_right_walk 	= pygame.image.load("nash_walk_arms.png").convert()
+		self.pic_right_walk 	= pygame.image.load("pics/nash_walk_arms.png").convert()
 		self.pic_right_walk.set_colorkey(WHITE)
 		self.pic_right_walk 	= pygame.transform.scale(self.pic_right_walk, [self.width,self.height])
 		self.pic_left_walk		= pygame.transform.flip(self.pic_right_walk,True,False)
 		
-		self.jump_pic_right		= pygame.image.load("nash_jump_right.png").convert()
+		self.jump_pic_right		= pygame.image.load("pics/nash_jump_right.png").convert()
 		self.jump_pic_right.set_colorkey(WHITE)
 		self.jump_pic_right 	= pygame.transform.scale(self.jump_pic_right, [self.width,self.height])
 		self.jump_pic_left	 	= pygame.transform.flip(self.jump_pic_right, True,False)
@@ -231,7 +231,7 @@ class Nash(Player):
 
 	def outside(self,lvl,nash_poly):
 		rel = lvl.poly.relate(nash_poly)
-		return rel[0] == '2' and rel[6] == 'F'
+		return rel[0] == '2' and rel[6] == 'F' #if at least one point is in inside and nothing outside?
 
 def main():
 	pygame.init()
@@ -257,8 +257,8 @@ def main():
 	#pygame.mixer.music.load('BeepBox-Song.wav')
 	#pygame.mixer.music.play(-1)
 	#load images
-	nash_intro = pygame.image.load("nash_final.png").convert()
-	call = pygame.image.load("call.png").convert()
+	nash_intro = pygame.image.load("pics/nash_final.png").convert()
+	call = pygame.image.load("pics/call.png").convert()
 	#add some intial objects
 	nash = Nash()
 	block_1 = Block(100,HEIGHT-40)
@@ -266,7 +266,7 @@ def main():
 	blocks = [] #temp for collide func
 	blocks.append(block_1)
 	blocks.append(block_2)
-	lvl1 = 	Level(WIDTH,HEIGHT)
+	lvl1 = 	Level1(WIDTH,HEIGHT)
 	# -------- Main Program Loop -----------
 	while not done:
 		# --- Main event loop --> runs every time, getting event that's happened?

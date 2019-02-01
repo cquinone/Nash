@@ -3,9 +3,7 @@ import pygame.font
 from pygame.locals import *
 from shapely.geometry import Polygon,Point
 import numpy as np
-from matplotlib import pyplot as plt
 import copy
-
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -33,7 +31,7 @@ def mask(Nash,xmin,xmax,ymax):
 	poly   = Polygon(points)
 	return points, poly
 
-class Level():
+class Level1():
 	def __init__(self,width,height):
 		self.width	= width
 		self.height	= height
@@ -258,7 +256,7 @@ def main():
 	blocks = [] #temp for collide func
 	blocks.append(block_1)
 	blocks.append(block_2)
-	lvl1 = 	Level(WIDTH,HEIGHT)
+	lvl1 = 	Level1(WIDTH,HEIGHT)
 	# -------- Main Program Loop -----------
 	while not done:
 		# --- Main event loop --> runs every time, getting event that's happened?
