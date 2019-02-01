@@ -45,11 +45,7 @@ class Level1():
 		self.btm_left.shape		= (2,1)
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
-		block_1 = Block(100,HEIGHT-40)
-		block_2 = Block(200,HEIGHT-60)
-		self.blocks = []
-		self.blocks.append(block_1)
-		self.blocks.append(block_2)
+		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-100)]
 
 	def draw(self,screen):
 		for block in self.blocks:
@@ -272,32 +268,46 @@ def main():
 	#add some intial objects
 	nash = Nash()
 	lvl1 = 	Level1(WIDTH,HEIGHT)
+	r_count = 0  #keep track of what was pressed last
+	l_count = 0
 	# -------- Main Program Loop -----------
 	while not done:
 		# --- Main event loop --> runs every time, getting event that's happened?
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				done = True
-				break;
+				break
+			keys = pygame.key.get_pressed()
 			if event.type == pygame.KEYDOWN:
 				if intro_trigger == True and event.key == pygame.K_RETURN:
 					intro_trigger = False
 					IT_talk_trigger = True
-					IT_countr = 0
-				keys = pygame.key.get_pressed() 
+					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
 					nash.jump = True
 					nash.yvel = -45 #this will force update to a jump?
-				if keys[pygame.K_RIGHT]:
+			if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
+				nash.dir = "right"
+				r_count = r_count + 1
+			if keys[pygame.K_LEFT]:
+				nash.dir = "left"
+				l_count = l_count + 1
+			if keys[pygame.K_RIGHT] and keys[pygame.K_LEFT]:
+				if r_count < l_count:
 					nash.dir = "right"
-				if keys[pygame.K_LEFT]:
+				if l_count < r_count:
 					nash.dir = "left"
+				else:
+					nash.dir = "right"
 
 			if event.type == pygame.KEYUP:
-				#if not nash.jump:
-				nash.dir = "idle" #get rid of above if to make it necessary to hold left through jump
-				nash.walk = False #should be drawing the idle image for no key press 
-
+				if not keys[pygame.K_LEFT]:
+					l_count = 0
+				if not keys[pygame.K_RIGHT]:
+					r_count = 0
+				if r_count == 0 and l_count == 0:
+					nash.dir = "idle"
+					nash.walk = False
 		# Intro Page ---> Runs if no ENTER KEY events have happened?
 		if intro_trigger and not IT_talk_trigger:
 			screen.fill(WHITE)
