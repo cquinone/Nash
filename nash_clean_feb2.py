@@ -23,10 +23,20 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
  
 # Constants
-WIDTH = 700
-HEIGHT = 500
+WIDTH = 800
+HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
+
+def convert_time(time):
+	mins = int(round(time / 60))-1
+	secs = 60*(time/60 - int(time/60))
+	secs = int(round(secs,0))
+	#print("time: ", time)
+	#print("mins: ", mins)
+	#print("secs: ", secs)	
+	converted = str(mins)+":"+str(secs)
+	return converted
 
 def mask(Nash,xmin,xmax,ymax):
 	top_right	= np.array([Nash.pos[0]+xmax,Nash.pos[1]+ymax]) 
@@ -81,19 +91,22 @@ class Title_lvl(Scene):
 		authors = Smallfont.render("(Created by Chris Quinones and Co.)", True, BLACK)
 		screen.blit(authors, [135,70])
 
-
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(0,230),Block(50,230), Block(100,230), Block(150,230), Block(270,200), Block(650,230)]
+		self.blocks = [Block(0,340),Block(50,340), Block(100,340), Block(150,340), Block(280,310), Block(650,230),
+						Block(460,340)]
 		self.end = False
 		self.name = "lvl1"
 
-	def draw(self,screen):
+	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
-			#pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
+		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
+		screen.blit(time, [0,0])
+
+
 
 class Level2(Scene):
 	def __init__(self,width,height,screen):
@@ -106,7 +119,6 @@ class Level2(Scene):
 		screen.fill(RED)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
-			#pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
 
 class Block():
 	def __init__(self,x,y):
@@ -154,7 +166,6 @@ class Nash(Player):
 		self.walk_timer = 5
 
 	def update_pos(self,screen,lvl):
-		print("nash time: ", self.timer)
 		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
 		#first check if you're jumping still
@@ -297,8 +308,8 @@ def main():
 	IT_talk_trigger = False
 	flickr_count = 0
 	#music
-	pygame.mixer.music.load('BeepBox-Song.wav')
-	pygame.mixer.music.play(-1)
+	#pygame.mixer.music.load('BeepBox-Song.wav')
+	#pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
 	#add a nash and generate levels
 	nash	= Nash(10,100)
@@ -307,6 +318,7 @@ def main():
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
 	r_count = 0  #keep track of what was pressed last
 	l_count = 0
+	overall_count = 0
 	#some things to print later
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 	it_2 = Midfont.render("We need to see your",True, BLACK)
@@ -368,6 +380,7 @@ def main():
 			screen.fill(WHITE)
 			screen.blit(call, [0,0])
 			IT_countr += 1
+			#draw the IT stuff and text
 			if IT_countr >= 20:
 				screen.blit(it_1, [190, 40])
 			if IT_countr >= 50:
@@ -383,15 +396,19 @@ def main():
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
 			if lvl1.end == False:
-				screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager?
-				lvl1.draw(screen)  # (before nash!)
+				screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
+				lvl1.draw(screen,convert_time(300-nash.timer))  # (before nash!)
 				nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
+				#if nash.timer % 30 == 0:
+				#	lvl1.timer = lvl1.timer + 1
 
 		# --- Go ahead and update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
 		clock.tick(60)
-		nash.timer = nash.timer + 1
+		if overall_count % 32 == 0 and not intro_trigger and not IT_talk_trigger:
+			nash.timer = nash.timer + 1
+		overall_count += 1
 	# Close the window and quit.
 	pygame.quit()
  
