@@ -85,7 +85,7 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
+		self.blocks = [Block(0,230),Block(50,230), Block(100,230)]
 		self.end = False
 		self.name = "lvl1"
 
@@ -122,9 +122,9 @@ class Player():
 		self.timer = 0
 
 class Nash(Player):
-	def __init__(self):
+	def __init__(self,x,y):
 		super().__init__()
-		self.pos = [250, 250]
+		self.pos = [x, y]
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name	= "Nash"
@@ -296,8 +296,8 @@ def main():
 	pygame.mixer.music.load('BeepBox-Song.wav')
 	pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
-	#add some intial objects
-	nash	= Nash()
+	#add a nash and generate levels
+	nash	= Nash(10,100)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
@@ -365,7 +365,7 @@ def main():
 				screen.blit(nash_ansr1, [280,360])
 			if IT_countr >= 130:
 				screen.blit(nash_ansr2, [280,380])
-			if IT_countr >= 200:
+			if IT_countr >= 185:
 				IT_talk_trigger = False
 
 		# Regular gameplay --> if not on intro screen!
