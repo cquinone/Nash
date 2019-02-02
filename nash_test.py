@@ -78,11 +78,12 @@ class Title_lvl(Scene):
 
 	def draw(self,screen):
 		screen.fill(WHITE)
-		nash_intro = pygame.image.load("pics/nash_final.png").convert()
-		screen.blit(nash_intro, [125,100])
+		nash_intro	= pygame.image.load("pics/nash_final.png").convert_alpha()
+		nash_intro	= pygame.transform.scale(nash_intro, [int(300*1.14),int(250*1.2)])
+		screen.blit(nash_intro, [100,100])
 		if self.timer < 20:
 			start = Startfont.render("[Hit Enter to Play]",True, BLACK) 
-			screen.blit(start,[70,410])
+			screen.blit(start,[135,455])
 			self.timer = self.timer + 1
 		else:
 			self.timer = self.timer + 1
@@ -96,8 +97,8 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(0,340),Block(50,340), Block(100,340), Block(150,340), Block(280,310), Block(650,230),
-						Block(460,340)]
+		self.blocks = [Block(0,400),Block(50,400), Block(100,400), Block(150,400), Block(280,370), Block(650,290),
+						Block(450,340)]
 		self.end = False
 		self.name = "lvl1"
 
@@ -107,8 +108,6 @@ class Level1(Scene):
 			screen.blit(block.pic,block.pos)
 		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
 		screen.blit(time, [0,0])
-
-
 
 class Level2(Scene):
 	def __init__(self,width,height,screen):
@@ -310,8 +309,8 @@ def main():
 	IT_talk_trigger = False
 	flickr_count = 0
 	#music
-	pygame.mixer.music.load('BeepBox-Song.wav')
-	pygame.mixer.music.play(-1)
+	#pygame.mixer.music.load('BeepBox-Song.wav')
+	#pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
 	#add a nash and generate levels
 	nash	= Nash(10,100)
