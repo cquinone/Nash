@@ -1,15 +1,4 @@
 use: http://inventwithpython.com/pygame/chapter9.html
-arial.tff included to try and load font from
-need nash drawings, backgroundart, title, all that
-
-levels  - https://stackoverflow.com/questions/14700889/pygame-level-menu-states
-          http://www.learnpygame.com/2015/08/game-saving-new-levels-and-pickles.html
-
-phys - https://www.pygame.org/project/780/5960
-
-need separate images for direction facing (to prevent weird image flip junk) 
-need sep images for frames of walk -> each dir too
-
 
 
 jan 29
