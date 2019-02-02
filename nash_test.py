@@ -13,7 +13,7 @@ pygame.font.init()
 #fonts
 Startfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscr.tff'), 22)
 Titlefont =  pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscrb.tff'), 42)
-Midfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscr.tff'), 15)
+Midfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscr.tff'), 14)
 Smallfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work","prog","pyproj","games","nash","silkscreen",'slkscr.tff'), 12)
 
 # Define some colors
@@ -79,20 +79,20 @@ class Title_lvl(Scene):
 	def draw(self,screen):
 		screen.fill(WHITE)
 		nash_intro	= pygame.image.load("pics/nash_final.png").convert_alpha()
-		nash_intro	= pygame.transform.scale(nash_intro, [int(300*1.14),int(250*1.2)])
-		screen.blit(nash_intro, [100,100])
+		nash_intro	= pygame.transform.scale(nash_intro, [int(1.4*int(300*1.14)),int(1.4*int(250*1.2))])
+		screen.blit(nash_intro, [165,100])
 		if self.timer < 20:
 			start = Startfont.render("[Hit Enter to Play]",True, BLACK) 
-			screen.blit(start,[135,455])
+			screen.blit(start,[285,535])
 			self.timer = self.timer + 1
 		else:
 			self.timer = self.timer + 1
 			if self.timer > 30: #basically saying: dont draw for ten frames, makes flickr effect
 				self.timer = 0
 		title = Titlefont.render("- FIVE MINUTES -",True, BLACK)
-		screen.blit(title, [20, 20])
+		screen.blit(title, [160, 20])
 		authors = Smallfont.render("(Created by Chris Quinones and Co.)", True, BLACK)
-		screen.blit(authors, [135,70])
+		screen.blit(authors, [275,70])
 
 class Level1(Scene):
 	def __init__(self,width,height,screen):
@@ -311,7 +311,8 @@ def main():
 	#music
 	#pygame.mixer.music.load('BeepBox-Song.wav')
 	#pygame.mixer.music.play(-1)
-	call = pygame.image.load("pics/call.png").convert_alpha()
+	call = pygame.image.load("pics/call.png").convert_alpha() #it image
+	call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 	#add a nash and generate levels
 	nash	= Nash(10,100)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
@@ -323,10 +324,11 @@ def main():
 	overall_time = 0
 	#some things to print later
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
-	it_2 = Midfont.render("We need to see your",True, BLACK)
-	it_3 = Midfont.render("laptop ASAP.",True, BLACK)
-	nash_ansr1 = Midfont.render("Fine.",True, BLACK)
-	nash_ansr2 = Midfont.render("Just give me five minutes.",True,BLACK)
+	it_2 = Midfont.render("We to check your laptop.",True, BLACK)
+	it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
+	nash_ansr1 = Midfont.render("Uhhhh ....",True, BLACK)
+	nash_ansr2 = Midfont.render("fine.",True,BLACK)
+	nash_ansr3 = Midfont.render("Just give me five minutes.",True,BLACK)
 	# -------- Main Program Loop -----------
 	while not done:
 		t_0 = time.time()
@@ -383,15 +385,18 @@ def main():
 			IT_countr += 1
 			#draw the IT stuff and text
 			if IT_countr >= 20:
-				screen.blit(it_1, [190, 40])
+				screen.blit(it_1, [220, 40])
 			if IT_countr >= 50:
-				screen.blit(it_2, [190, 60])
-				screen.blit(it_3, [190, 80])
+				screen.blit(it_2, [220, 60])
+			if IT_countr >= 70:
+				screen.blit(it_3, [230, 80])
 			if IT_countr >= 100:
-				screen.blit(nash_ansr1, [280,360])
+				screen.blit(nash_ansr1, [330,460])
 			if IT_countr >= 130:
-				screen.blit(nash_ansr2, [280,380])
-			if IT_countr >= 185:
+				screen.blit(nash_ansr2, [410,460])
+			if IT_countr >= 160:
+				screen.blit(nash_ansr3, [330,480])
+			if IT_countr >= 195:
 				IT_talk_trigger = False
 
 		# Regular gameplay --> if not on intro screen!
