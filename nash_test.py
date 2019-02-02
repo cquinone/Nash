@@ -310,8 +310,8 @@ def main():
 	IT_talk_trigger = False
 	flickr_count = 0
 	#music
-	#pygame.mixer.music.load('BeepBox-Song.wav')
-	#pygame.mixer.music.play(-1)
+	pygame.mixer.music.load('BeepBox-Song.wav')
+	pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
 	#add a nash and generate levels
 	nash	= Nash(10,100)

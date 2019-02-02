@@ -4,7 +4,7 @@ from pygame.locals import *
 from shapely.geometry import Polygon,Point
 import numpy as np
 from matplotlib import pyplot as plt
-import copy
+import time
 
 
 pygame.init()
@@ -28,13 +28,15 @@ HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
 
+
 def convert_time(time):
-	mins = int(round(time / 60))-1
+	mins = str(int(time/60))
+	if len(mins) == 1:
+		mins = "0"+mins
 	secs = 60*(time/60 - int(time/60))
-	secs = int(round(secs,0))
-	#print("time: ", time)
-	#print("mins: ", mins)
-	#print("secs: ", secs)	
+	secs = str(int(secs))
+	if len(secs) == 1:
+		secs = "0"+secs
 	converted = str(mins)+":"+str(secs)
 	return converted
 
@@ -308,17 +310,18 @@ def main():
 	IT_talk_trigger = False
 	flickr_count = 0
 	#music
-	#pygame.mixer.music.load('BeepBox-Song.wav')
-	#pygame.mixer.music.play(-1)
+	pygame.mixer.music.load('BeepBox-Song.wav')
+	pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
 	#add a nash and generate levels
 	nash	= Nash(10,100)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
+	levels	= [lvl1,lvl2]
 	r_count = 0  #keep track of what was pressed last
 	l_count = 0
-	overall_count = 0
+	overall_time = 0
 	#some things to print later
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 	it_2 = Midfont.render("We need to see your",True, BLACK)
@@ -327,6 +330,7 @@ def main():
 	nash_ansr2 = Midfont.render("Just give me five minutes.",True,BLACK)
 	# -------- Main Program Loop -----------
 	while not done:
+		t_0 = time.time()
 		# --- Main event loop --> runs every time, getting event that's happened?
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -370,11 +374,9 @@ def main():
 					nash.dir = "idle"
 					nash.walk = False
 
-
 		# Intro Page ---> Runs if no ENTER key events have happened
 		if intro_trigger and not IT_talk_trigger:
 			title.draw(screen)
-		
 		#Secondary intro page  ---> runs after enter key, before lvls
 		if IT_talk_trigger:
 			screen.fill(WHITE)
@@ -395,21 +397,28 @@ def main():
 
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
-			if lvl1.end == False:
-				screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
-				lvl1.draw(screen,convert_time(300-nash.timer))  # (before nash!)
-				nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
-				#if nash.timer % 30 == 0:
-				#	lvl1.timer = lvl1.timer + 1
-
-		# --- Go ahead and update the screen with what we've drawn.
+			for lvl in levels:
+				if lvl.end == False:
+					curr_lvl = lvl
+					break
+			screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
+			curr_lvl.draw(screen,convert_time(300-nash.timer))  # (before nash!)
+			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
+		# --- update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
 		clock.tick(60)
-		if overall_count % 32 == 0 and not intro_trigger and not IT_talk_trigger:
-			nash.timer = nash.timer + 1
-		overall_count += 1
+		t_1 = time.time()
+		if not intro_trigger and not IT_talk_trigger:
+			overall_time = overall_time + t_1-t_0
+			nash.timer = overall_time
+		#---- check if you've run out of time
+		if nash.timer >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
+			print("overall_count, nash.timer: ", overall_count, nash.timer)
+			print("GAME OVER")
+			break
 	# Close the window and quit.
+	# ---> here put lost end screen (if you ran out of time)
 	pygame.quit()
  
 if __name__ == "__main__":
