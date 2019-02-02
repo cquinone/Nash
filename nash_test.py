@@ -126,19 +126,16 @@ class Nash(Player):
 		self.pos = [250, 250]
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
-		self.name		= "Nash"
+		self.name	= "Nash"
 		self.pic_right_idle 	= pygame.image.load("pics/nash_side.png").convert_alpha()
-		#self.pic_right_idle.set_colorkey(WHITE)
 		self.pic_right_idle 	= pygame.transform.scale(self.pic_right_idle, [self.width,self.height])
 		self.pic_left_idle		= pygame.transform.flip(self.pic_right_idle,True,False)
 
-		self.pic_right_walk 	= pygame.image.load("pics/nash_walk_arms.png").convert_alpha()
-		#self.pic_right_walk.set_colorkey(WHITE)
+		self.pic_right_walk 	= pygame.image.load("pics/nash_walk.png").convert_alpha()
 		self.pic_right_walk 	= pygame.transform.scale(self.pic_right_walk, [self.width,self.height])
 		self.pic_left_walk		= pygame.transform.flip(self.pic_right_walk,True,False)
 		
 		self.jump_pic_right		= pygame.image.load("pics/nash_jump_right.png").convert_alpha()
-		#self.jump_pic_right.set_colorkey(WHITE)
 		self.jump_pic_right 	= pygame.transform.scale(self.jump_pic_right, [self.width,self.height])
 		self.jump_pic_left	 	= pygame.transform.flip(self.jump_pic_right, True,False)
 		
@@ -358,8 +355,8 @@ def main():
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
 			if lvl1.end == False:
-				screen.fill(WHITE) #for now, clean it off so we can redraw --> will need to start event manager?
-				lvl1.draw(screen)  #(before nash!)
+				screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager?
+				lvl1.draw(screen)  # (before nash!)
 				nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
 
 		# --- Go ahead and update the screen with what we've drawn.
@@ -372,8 +369,6 @@ def main():
  
 if __name__ == "__main__":
 	main()
-
-
 
 
 

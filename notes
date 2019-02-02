@@ -45,9 +45,6 @@ Might be that need masks and check for jump/fall state
 
 feb 1
 ---------------------
-set up level manager, change level class to actually be instaces of each specific level
----> maybe not though, to save bounding box
-fix images (clean off odd color), check if background will mess with them
 maybe shift block or nash mask inward to stop weird side collisions
 --> moving blocks need way to deal with player interactions, will need to also update moving block masks
 --> so like add moving bool to block class
