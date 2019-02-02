@@ -51,3 +51,6 @@ maybe shift block or nash mask inward to stop weird side collisions
 
 prevent jumping out of fall? maaaybe-> makes falling worse
 --> maybe not, nice way to save self
+add timer drawn on lvl1 and beyond --> part of initialized parent class
+--> just add to draw method?
+Add the nash vs pic somehow --> maybe end screen if you lose?
