@@ -28,7 +28,6 @@ HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
 
-
 def convert_time(time):
 	mins = str(int(time/60))
 	if len(mins) == 1:
@@ -99,7 +98,7 @@ class Level1(Scene):
 		super().__init__(width,height)
 		self.blocks = [Block(0,400),Block(50,400), Block(100,400), Block(150,400), Block(265,375),Block(160,580),
 						Block(420,340),Block(602,315),Block(652,315),Block(702,315),Block(752,315),Block(110,580),
-						Block(60,580),Block(10,580),Block(-40,580)]
+						Block(60,580),Block(10,580),Block(-40,580),Prize(10,530)]
 		self.end = False
 		self.name = "lvl1"
 
@@ -129,7 +128,16 @@ class Block():
 		self.height = 20
 		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
-		self.points,self.poly = mask(self,0,50,20) 
+		self.points,self.poly = mask(self,0,50,20)
+
+class Prize():
+	def __init__(self,x,y):
+		self.pos = [x,y]
+		self.width 	= 19
+		self.height = 15
+		self.pic = pygame.image.load("pics/prize.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [24,20])
+		self.points,self.poly = mask(self,0,24,20) 
 
 class Player():
 	def __init__(self):
@@ -325,7 +333,7 @@ def main():
 	overall_time = 0
 	#some things to print later
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
-	it_2 = Midfont.render("We to check your laptop.",True, BLACK)
+	it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
 	it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
 	nash_ansr1 = Midfont.render("Uhhhh ....",True, BLACK)
 	nash_ansr2 = Midfont.render("fine.",True,BLACK)
@@ -407,7 +415,7 @@ def main():
 					curr_lvl = lvl
 					break
 			screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
-			curr_lvl.draw(screen,convert_time(300-nash.timer))  # (before nash!)
+			curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash!)
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 		# --- update the screen with what we've drawn.
 		pygame.display.flip()
@@ -416,9 +424,8 @@ def main():
 		t_1 = time.time()
 		if not intro_trigger and not IT_talk_trigger:
 			overall_time = overall_time + t_1-t_0
-			nash.timer = overall_time
 		#---- check if you've run out of time
-		if nash.timer >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
+		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 			print("overall_count, nash.timer: ", overall_count, nash.timer)
 			print("GAME OVER")
 			break
@@ -428,7 +435,4 @@ def main():
  
 if __name__ == "__main__":
 	main()
-
-
-
 	#pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)

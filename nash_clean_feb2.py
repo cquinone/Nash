@@ -28,7 +28,6 @@ HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
 
-
 def convert_time(time):
 	mins = str(int(time/60))
 	if len(mins) == 1:
@@ -407,7 +406,7 @@ def main():
 					curr_lvl = lvl
 					break
 			screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
-			curr_lvl.draw(screen,convert_time(300-nash.timer))  # (before nash!)
+			curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash!)
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 		# --- update the screen with what we've drawn.
 		pygame.display.flip()
@@ -416,9 +415,8 @@ def main():
 		t_1 = time.time()
 		if not intro_trigger and not IT_talk_trigger:
 			overall_time = overall_time + t_1-t_0
-			nash.timer = overall_time
 		#---- check if you've run out of time
-		if nash.timer >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
+		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 			print("overall_count, nash.timer: ", overall_count, nash.timer)
 			print("GAME OVER")
 			break
@@ -428,7 +426,4 @@ def main():
  
 if __name__ == "__main__":
 	main()
-
-
-
 	#pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
