@@ -97,8 +97,9 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(0,400),Block(50,400), Block(100,400), Block(150,400), Block(280,370), Block(650,290),
-						Block(450,340)]
+		self.blocks = [Block(0,400),Block(50,400), Block(100,400), Block(150,400), Block(265,375),Block(160,580),
+						Block(420,340),Block(602,315),Block(652,315),Block(702,315),Block(752,315),Block(110,580),
+						Block(60,580),Block(10,580),Block(-40,580)]
 		self.end = False
 		self.name = "lvl1"
 
