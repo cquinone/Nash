@@ -54,3 +54,9 @@ prevent jumping out of fall? maaaybe-> makes falling worse
 add timer drawn on lvl1 and beyond --> part of initialized parent class
 --> just add to draw method?
 Add the nash vs pic somehow --> maybe end screen if you lose?
+
+
+feb 2
+---------------------
+game runs oddly --> trying to make it 60 fps and you get like 44
+--> how to track one second passing?
