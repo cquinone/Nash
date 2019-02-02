@@ -147,12 +147,14 @@ class Nash(Player):
 		self.old_dir = "right"
 		self.dir = "idle"
 		self.fall = False
+		self.still_fall = False #extra bool to cover falling case after jump
 		self.jump = True
 		self.walk = False #False means idle, True means walk image
 		self.stand_count = 0
 		self.walk_timer = 5
 
 	def update_pos(self,screen,lvl):
+		print("nash time: ", self.timer)
 		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
 		#first check if you're jumping still
@@ -171,7 +173,9 @@ class Nash(Player):
 			if self.collide(new_x,new_y,self.fall,lvl): #not falling
 				self.yvel = 0
 				self.fall = False
+				self.still_fall = False
 			else:
+				self.still_fall = True
 				self.pos[1] = new_y
 				self.fall = False
 		if self.dir == "right":
@@ -323,8 +327,12 @@ def main():
 					IT_talk_trigger = True
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
-					nash.jump = True
-					nash.yvel = -30 #this will force update to a jump?
+					if nash.still_fall == False:
+						nash.yvel = -30 #this will force update to a jump?
+						nash.jump = True
+					else:
+						nash.jump = False
+
 			if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
 				nash.dir = "right"
 				r_count = r_count + 1

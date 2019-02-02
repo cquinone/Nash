@@ -85,7 +85,7 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
+		self.blocks = [Block(0,230),Block(50,230), Block(100,230), Block(150,230), Block(270,200), Block(650,230)]
 		self.end = False
 		self.name = "lvl1"
 
@@ -93,7 +93,7 @@ class Level1(Scene):
 		screen.fill(WHITE)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
-			pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
+			#pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
 
 class Level2(Scene):
 	def __init__(self,width,height,screen):
@@ -106,7 +106,7 @@ class Level2(Scene):
 		screen.fill(RED)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
-			pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
+			#pygame.draw.polygon(screen, RED,[[block.points[0][0],block.points[0][1]],[block.points[1][0],block.points[1][1]],[block.points[2][0],block.points[2][1]],[block.points[3][0],block.points[3][1]]], 2)
 
 class Block():
 	def __init__(self,x,y):
@@ -122,9 +122,9 @@ class Player():
 		self.timer = 0
 
 class Nash(Player):
-	def __init__(self):
+	def __init__(self,x,y):
 		super().__init__()
-		self.pos = [250, 250]
+		self.pos = [x, y]
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name	= "Nash"
@@ -147,12 +147,14 @@ class Nash(Player):
 		self.old_dir = "right"
 		self.dir = "idle"
 		self.fall = False
+		self.still_fall = False #extra bool to cover falling case after jump
 		self.jump = True
 		self.walk = False #False means idle, True means walk image
 		self.stand_count = 0
 		self.walk_timer = 5
 
 	def update_pos(self,screen,lvl):
+		print("nash time: ", self.timer)
 		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
 		#first check if you're jumping still
@@ -171,7 +173,9 @@ class Nash(Player):
 			if self.collide(new_x,new_y,self.fall,lvl): #not falling
 				self.yvel = 0
 				self.fall = False
+				self.still_fall = False
 			else:
+				self.still_fall = True
 				self.pos[1] = new_y
 				self.fall = False
 		if self.dir == "right":
@@ -296,8 +300,8 @@ def main():
 	pygame.mixer.music.load('BeepBox-Song.wav')
 	pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha()
-	#add some intial objects
-	nash	= Nash()
+	#add a nash and generate levels
+	nash	= Nash(10,100)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
@@ -323,8 +327,12 @@ def main():
 					IT_talk_trigger = True
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
-					nash.jump = True
-					nash.yvel = -45 #this will force update to a jump?
+					if nash.still_fall == False:
+						nash.yvel = -30 #this will force update to a jump?
+						nash.jump = True
+					else:
+						nash.jump = False
+
 			if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
 				nash.dir = "right"
 				r_count = r_count + 1
@@ -338,6 +346,9 @@ def main():
 					nash.dir = "left"
 				else:
 					nash.dir = "right"
+			if keys[pygame.K_r]:
+				print("R PRESSED")
+				nash.pos = [10,100]  #reset
 			if event.type == pygame.KEYUP:
 				if not keys[pygame.K_LEFT]:
 					l_count = 0
@@ -346,6 +357,7 @@ def main():
 				if r_count == 0 and l_count == 0:
 					nash.dir = "idle"
 					nash.walk = False
+
 
 		# Intro Page ---> Runs if no ENTER key events have happened
 		if intro_trigger and not IT_talk_trigger:
@@ -365,7 +377,7 @@ def main():
 				screen.blit(nash_ansr1, [280,360])
 			if IT_countr >= 130:
 				screen.blit(nash_ansr2, [280,380])
-			if IT_countr >= 200:
+			if IT_countr >= 185:
 				IT_talk_trigger = False
 
 		# Regular gameplay --> if not on intro screen!
