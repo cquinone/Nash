@@ -32,9 +32,8 @@ def convert_time(time):
 	mins = int(round(time / 60))-1
 	secs = 60*(time/60 - int(time/60))
 	secs = int(round(secs,0))
-	#print("time: ", time)
-	#print("mins: ", mins)
-	#print("secs: ", secs)	
+	if secs == 0:
+		secs == "00"	
 	converted = str(mins)+":"+str(secs)
 	return converted
 
@@ -316,9 +315,10 @@ def main():
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
+	levels	= [lvl1,lvl2]
 	r_count = 0  #keep track of what was pressed last
 	l_count = 0
-	overall_count = 0
+	overall_count = 1
 	#some things to print later
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 	it_2 = Midfont.render("We need to see your",True, BLACK)
@@ -395,12 +395,13 @@ def main():
 
 		# Regular gameplay --> if not on intro screen!
 		if not intro_trigger and not IT_talk_trigger:
-			if lvl1.end == False:
-				screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
-				lvl1.draw(screen,convert_time(300-nash.timer))  # (before nash!)
-				nash.update_pos(screen,lvl1) #this finds new pos of nash based on inputs, and draws him
-				#if nash.timer % 30 == 0:
-				#	lvl1.timer = lvl1.timer + 1
+			for lvl in levels:
+				if lvl.end == False:
+					curr_lvl = lvl
+					break
+			screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
+			curr_lvl.draw(screen,convert_time(300-nash.timer))  # (before nash!)
+			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 
 		# --- Go ahead and update the screen with what we've drawn.
 		pygame.display.flip()
@@ -409,7 +410,13 @@ def main():
 		if overall_count % 32 == 0 and not intro_trigger and not IT_talk_trigger:
 			nash.timer = nash.timer + 1
 		overall_count += 1
+		#---- check if you've run out of time
+		if nash.timer >= 300 and overall_count >= 32 and not intro_trigger and not IT_talk_trigger:   #if you lose
+			print("overall_count, nash.timer: ", overall_count, nash.timer)
+			print("GAME OVER")
+			break
 	# Close the window and quit.
+	# ---> here put lost end screen (ran out of time)
 	pygame.quit()
  
 if __name__ == "__main__":
