@@ -128,7 +128,7 @@ class Block():
 		self.height = 20
 		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
-		self.points,self.poly = mask(self,0,50,20)
+		self.points,self.poly = mask(self,0,46,20)
 
 class Prize():
 	def __init__(self,x,y):
