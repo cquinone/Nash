@@ -98,7 +98,7 @@ class Level1(Scene):
 		super().__init__(width,height)
 		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
 						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),
-						Block(60,580),Block(10,580),Block(-40,580),Prize(10,530)]
+						Block(60,580),Block(10,580),Block(-40,580),FBI(261,548)]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.end = False
@@ -133,14 +133,14 @@ class Block():
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
 
-class Prize():
+class FBI():
 	def __init__(self,x,y):
 		self.pos = [x,y]
-		self.width 	= 19
-		self.height = 15
-		self.pic = pygame.image.load("pics/prize.png").convert_alpha()
-		self.pic = pygame.transform.scale(self.pic, [24,20])
-		self.points,self.poly = mask(self,0,24,20) 
+		self.width 	= 30
+		self.height = 40
+		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
+		self.points,self.poly = mask(self,0,1.2*self.width,1.3*self.height) 
 
 class Player():
 	def __init__(self):
