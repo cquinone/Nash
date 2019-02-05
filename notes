@@ -51,3 +51,11 @@ game runs oddly --> trying to make it 60 fps and you get like 44
 --> how to track one second passing?
 one prized possession per level -> bonuses? time bonuses?
 --> possible prized possessions: ___
+
+feb 4
+---------------------
+smoke puff, ladder, FBI, ... -> objects to collide with
+collide func handles blocks + walls
+sep func for above?
+or put object cover loop in update pos?
+go with SEP FUNC

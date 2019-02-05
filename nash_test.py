@@ -39,11 +39,11 @@ def convert_time(time):
 	converted = str(mins)+":"+str(secs)
 	return converted
 
-def mask(Nash,xmin,xmax,ymax):
-	top_right	= np.array([Nash.pos[0]+xmax,Nash.pos[1]+ymax]) 
-	top_left	= np.array([Nash.pos[0]+xmin,Nash.pos[1]+ymax])			
-	btm_right	= np.array([Nash.pos[0]+xmax,Nash.pos[1]])		#ymin is assumed to always be 0
-	btm_left	= np.array([Nash.pos[0]+xmin,Nash.pos[1]])
+def mask(nash,xmin,xmax,ymax):
+	top_right	= np.array([nash.pos[0]+xmax,nash.pos[1]+ymax]) 
+	top_left	= np.array([nash.pos[0]+xmin,nash.pos[1]+ymax])			
+	btm_right	= np.array([nash.pos[0]+xmax,nash.pos[1]])		#ymin is assumed to always be 0
+	btm_left	= np.array([nash.pos[0]+xmin,nash.pos[1]])
 	top_right.shape	= (2,1) 
 	top_left.shape	= (2,1)
 	btm_right.shape	= (2,1)
@@ -82,11 +82,11 @@ class Title_lvl(Scene):
 		screen.blit(nash_intro, [165,100])
 		if self.timer < 20:
 			start = Startfont.render("[Hit Enter to Play]",True, BLACK) 
-			screen.blit(start,[285,535])
+			screen.blit(start,[280,535])
 			self.timer = self.timer + 1
 		else:
 			self.timer = self.timer + 1
-			if self.timer > 30: #basically saying: dont draw for ten frames, makes flickr effect
+			if self.timer > 30: #basically saying: dont draw for ten frames, makes flicker effect
 				self.timer = 0
 		title = Titlefont.render("- FIVE MINUTES -",True, BLACK)
 		screen.blit(title, [160, 20])
@@ -96,14 +96,17 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
-		self.blocks = [Block(0,400),Block(50,400), Block(100,400), Block(150,400), Block(265,375),Block(160,580),
-						Block(420,340),Block(602,315),Block(652,315),Block(702,315),Block(752,315),Block(110,580),
+		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
+						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),
 						Block(60,580),Block(10,580),Block(-40,580),Prize(10,530)]
+		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.end = False
 		self.name = "lvl1"
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
+		screen.blit(self.pic, [0,0])
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
 		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
@@ -206,6 +209,10 @@ class Nash(Player):
 		#now finally check if new_x will cause a collision
 		if not self.collide(new_x,new_y,self.fall,lvl):
 			self.pos[0] = new_x
+		
+		#sep func for FBI, item, smoke puff, etc collisions
+		#aux_collide()
+		
 		#now update masks!
 		self.idle_points,self.idle_poly = mask(self,8,30,54)
 		self.walk_points,self.walk_poly = mask(self,7,29,54)
@@ -354,7 +361,7 @@ def main():
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
 					if nash.still_fall == False:
-						nash.yvel = -30 #this will force update to a jump?
+						nash.yvel = -33 #this will force update to a jump?
 						nash.jump = True
 					else:
 						nash.jump = False
@@ -405,7 +412,7 @@ def main():
 				screen.blit(nash_ansr2, [410,460])
 			if IT_countr >= 160:
 				screen.blit(nash_ansr3, [330,480])
-			if IT_countr >= 195:
+			if IT_countr >= 1:#195:
 				IT_talk_trigger = False
 
 		# Regular gameplay --> if not on intro screen!
