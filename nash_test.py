@@ -130,7 +130,7 @@ class Level1(Scene):
 				if entity.remove:
 					print("delete it")
 				#pause for a sec or so, draw FBI caught message
-				pygame.time.wait(600)
+				pygame.time.wait(400)
 				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
 				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
 				pygame.display.flip()
@@ -495,7 +495,7 @@ def main():
 			overall_time = overall_time + t_1-t_0
 		#---- check if you've run out of time
 		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
-			print("overall_count, nash.timer: ", overall_count, nash.timer)
+			print("nash.timer: ", nash.timer)
 			print("GAME OVER")
 			break
 	# Close the window and quit.
