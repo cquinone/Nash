@@ -28,6 +28,7 @@ HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
 
+
 def convert_time(time):
 	mins = str(int(time/60))
 	if len(mins) == 1:
@@ -38,6 +39,7 @@ def convert_time(time):
 		secs = "0"+secs
 	converted = str(mins)+":"+str(secs)
 	return converted
+
 
 def mask(nash,xmin,xmax,ymax):
 	top_right	= np.array([nash.pos[0]+xmax,nash.pos[1]+ymax]) 
@@ -51,6 +53,7 @@ def mask(nash,xmin,xmax,ymax):
 	points = [top_left,top_right,btm_right,btm_left]
 	poly   = Polygon(points)
 	return points, poly
+
 
 class Scene:
 	def __init__(self,width,height):
@@ -67,6 +70,7 @@ class Scene:
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
 		self.timer = 0
+
 
 class Title_lvl(Scene):
 	def __init__(self,width,height,screen):
@@ -96,33 +100,72 @@ class Title_lvl(Scene):
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
+		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
-						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),
-						Block(60,580),Block(10,580),Block(-40,580),FBI(261,548)]
+						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),Block(60,580),
+						Block(10,580),Block(-40,580)]
+		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
+		self.entities = [FBI(261,548)]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.end = False
+		self.start = [10,100]
 		self.name = "lvl1"
+
+	def events(self,screen,nash):
+		collided = False
+		for entity in self.entities:
+			if nash.jump: #cover jump mask case
+				if nash.jump_poly.intersects(entity.poly):
+					collided = True
+			else:
+				if nash.dir == "idle":
+					if nash.idle_poly.intersects(entity.poly):
+						collided = True
+				elif nash.dir == "right" or nash.dir == "left":
+					if nash.walk_poly.intersects(entity.poly):
+						collided = True		
+			#if collided with an entity this loop, move nash and maybe delete entity
+			if collided: 
+				if entity.remove:
+					print("delete it")
+				#pause for a sec or so, draw FBI caught message
+				pygame.time.wait(600)
+				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
+				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
+				pygame.display.flip()
+				pygame.time.wait(1200)
+				return self.start[0],self.start[1] 	
+				#collided with FBI, reset nash pos , dont delete this entity though
+			collided = False
+
+		#fallback for no collisions, return originial position
+		return nash.pos[0],nash.pos[1]
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
 		screen.blit(self.pic, [0,0])
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
+		for entity in self.entities:
+			screen.blit(entity.pic,entity.pos)
 		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
 		screen.blit(time, [0,0])
+
 
 class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
 		self.end = False
+		self.start = [10,100]
 		self.name = "lvl2"
 
 	def draw(self,screen):
 		screen.fill(RED)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
+
 
 class Block():
 	def __init__(self,x,y):
@@ -133,6 +176,7 @@ class Block():
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
 
+
 class FBI():
 	def __init__(self,x,y):
 		self.pos = [x,y]
@@ -140,11 +184,14 @@ class FBI():
 		self.height = 40
 		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
-		self.points,self.poly = mask(self,0,1.2*self.width,1.3*self.height) 
+		self.points,self.poly = mask(self,0,1.2*self.width,1.3*self.height)
+		self.remove = False
+
 
 class Player():
 	def __init__(self):
 		self.timer = 0
+
 
 class Nash(Player):
 	def __init__(self,x,y):
@@ -209,10 +256,6 @@ class Nash(Player):
 		#now finally check if new_x will cause a collision
 		if not self.collide(new_x,new_y,self.fall,lvl):
 			self.pos[0] = new_x
-		
-		#sep func for FBI, item, smoke puff, etc collisions
-		#aux_collide()
-		
 		#now update masks!
 		self.idle_points,self.idle_poly = mask(self,8,30,54)
 		self.walk_points,self.walk_poly = mask(self,7,29,54)
@@ -312,6 +355,7 @@ class Nash(Player):
 		rel = lvl.poly.relate(nash_poly)
 		return rel[0] == '2' and rel[6] == 'F' #if at least one point is in inside and nothing outside?
 
+
 def main():
 	# Set the width and height of the screen [width, height]
 	size = (WIDTH, HEIGHT)
@@ -325,9 +369,9 @@ def main():
 	IT_talk_trigger = False
 	flickr_count = 0
 	#music
-	#pygame.mixer.music.load('BeepBox-Song.wav')
-	#pygame.mixer.music.play(-1)
-	call = pygame.image.load("pics/call.png").convert_alpha() #it image
+	pygame.mixer.music.load('BeepBox-Song.wav')
+	pygame.mixer.music.play(-1)
+	call = pygame.image.load("pics/call.png").convert_alpha() #IT image
 	call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 	#add a nash and generate levels
 	nash	= Nash(10,100)
@@ -335,10 +379,13 @@ def main():
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
 	levels	= [lvl1,lvl2]
+	curr_lvl = None
 	r_count = 0  #keep track of what was pressed last
 	l_count = 0
 	overall_time = 0
-	#some things to print later
+	pause = False
+	#some things to blti to screen
+	pause_text = Titlefont.render("PAUSED",True,RED)
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 	it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
 	it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
@@ -361,10 +408,16 @@ def main():
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
 					if nash.still_fall == False:
-						nash.yvel = -33 #this will force update to a jump?
+						nash.yvel = -33 
 						nash.jump = True
 					else:
 						nash.jump = False
+				if event.key == pygame.K_p:
+					print("P key pressed")
+					if pause == False:
+						pause = True
+					elif pause == True:
+						pause = False
 
 			if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
 				nash.dir = "right"
@@ -379,9 +432,10 @@ def main():
 					nash.dir = "left"
 				else:
 					nash.dir = "right"
-			if keys[pygame.K_r]:
+			if keys[pygame.K_r]: #reset nash pos for debugging
 				print("R PRESSED")
-				nash.pos = [10,100]  #reset
+				nash.pos = [10,100]
+
 			if event.type == pygame.KEYUP:
 				if not keys[pygame.K_LEFT]:
 					l_count = 0
@@ -391,45 +445,53 @@ def main():
 					nash.dir = "idle"
 					nash.walk = False
 
-		# Intro Page ---> Runs if no ENTER key events have happened
-		if intro_trigger and not IT_talk_trigger:
-			title.draw(screen)
-		#Secondary intro page  ---> runs after enter key, before lvls
-		if IT_talk_trigger:
+		# Pause page (check first!)
+		if pause:
+			print("PAUSING NOW")
 			screen.fill(WHITE)
-			screen.blit(call, [0,0])
-			IT_countr += 1
-			#draw the IT stuff and text
-			if IT_countr >= 20:
-				screen.blit(it_1, [220, 40])
-			if IT_countr >= 50:
-				screen.blit(it_2, [220, 60])
-			if IT_countr >= 70:
-				screen.blit(it_3, [230, 80])
-			if IT_countr >= 100:
-				screen.blit(nash_ansr1, [330,460])
-			if IT_countr >= 130:
-				screen.blit(nash_ansr2, [410,460])
-			if IT_countr >= 160:
-				screen.blit(nash_ansr3, [330,480])
-			if IT_countr >= 1:#195:
-				IT_talk_trigger = False
-
-		# Regular gameplay --> if not on intro screen!
-		if not intro_trigger and not IT_talk_trigger:
-			for lvl in levels:
-				if lvl.end == False:
-					curr_lvl = lvl
-					break
-			screen.fill(WHITE) # for now, clean it off so we can redraw --> will need to start event manager? 
-			curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash!)
-			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
+			screen.blit(pause_text,[(WIDTH/2)-100,HEIGHT/2])
+		else:
+		    # Intro Page ---> Runs if no ENTER key events have happened
+			if intro_trigger and not IT_talk_trigger:
+				title.draw(screen)
+			#Secondary intro page  ---> runs after enter key, before lvls
+			if IT_talk_trigger:
+				screen.fill(WHITE)
+				screen.blit(call, [0,0])
+				IT_countr += 1
+				#draw the IT stuff and text
+				if IT_countr >= 20:
+					screen.blit(it_1, [220, 40])
+				if IT_countr >= 50:
+					screen.blit(it_2, [220, 60])
+				if IT_countr >= 70:
+					screen.blit(it_3, [230, 80])
+				if IT_countr >= 100:
+					screen.blit(nash_ansr1, [330,460])
+				if IT_countr >= 130:
+					screen.blit(nash_ansr2, [410,460])
+				if IT_countr >= 160:
+					screen.blit(nash_ansr3, [330,480])
+				if IT_countr >= 195:
+					IT_talk_trigger = False
+	
+			# Regular gameplay --> if not on intro screen!
+			if not intro_trigger and not IT_talk_trigger:
+				for lvl in levels:
+					if lvl.end == False:
+						curr_lvl = lvl
+						break
+				screen.fill(WHITE) # for now, clean it off so we can redraw 
+				nash.pos[0], nash.pos[1] = curr_lvl.events(screen, nash) #handle events in given level -> entity collisions
+        	    												 #      						  level end reached 
+				curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
+				nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 		# --- update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
 		clock.tick(60)
 		t_1 = time.time()
-		if not intro_trigger and not IT_talk_trigger:
+		if not intro_trigger and not IT_talk_trigger and not pause:
 			overall_time = overall_time + t_1-t_0
 		#---- check if you've run out of time
 		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
@@ -439,7 +501,7 @@ def main():
 	# Close the window and quit.
 	# ---> here put lost end screen (if you ran out of time)
 	pygame.quit()
- 
+
+
 if __name__ == "__main__":
 	main()
-	#pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
