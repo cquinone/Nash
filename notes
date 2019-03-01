@@ -59,3 +59,9 @@ collide func handles blocks + walls
 sep func for above?
 or put object cover loop in update pos?
 go with SEP FUNC
+
+feb 28
+---------------------
+handle pause issue that drains clock
+add another FBI agent
+redo background art after level finished

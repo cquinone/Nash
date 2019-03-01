@@ -105,15 +105,22 @@ class Level1(Scene):
 						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),Block(60,580),
 						Block(10,580),Block(-40,580)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [FBI(261,548)]
+		self.entities = [FBI(261,548),FBI(301,548)]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.end = False
+		self.finish = [11,101]
 		self.start = [10,100]
 		self.name = "lvl1"
 
 	def events(self,screen,nash):
+		#first check if end of level reached 
+		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
+			print("END REACHED")
 		collided = False
+		#get current yvel, jump state
+		yvel = nash.yvel
+		jump = nash.jump
 		for entity in self.entities:
 			if nash.jump: #cover jump mask case
 				if nash.jump_poly.intersects(entity.poly):
@@ -135,12 +142,15 @@ class Level1(Scene):
 				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
 				pygame.display.flip()
 				pygame.time.wait(1200)
-				return self.start[0],self.start[1] 	
+				#reset jump and yvel to 0
+				jump = False
+				yvel = 0
+				return self.start[0],self.start[1], jump,yvel
 				#collided with FBI, reset nash pos , dont delete this entity though
 			collided = False
 
 		#fallback for no collisions, return originial position
-		return nash.pos[0],nash.pos[1]
+		return nash.pos[0],nash.pos[1], jump, yvel
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
@@ -158,6 +168,7 @@ class Level2(Scene):
 		super().__init__(width,height)
 		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
 		self.end = False
+		self.finish = [11,101]
 		self.start = [10,100]
 		self.name = "lvl2"
 
@@ -384,7 +395,7 @@ def main():
 	l_count = 0
 	overall_time = 0
 	pause = False
-	#some things to blti to screen
+	#some things to blit to screen
 	pause_text = Titlefont.render("PAUSED",True,RED)
 	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 	it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
@@ -413,7 +424,6 @@ def main():
 					else:
 						nash.jump = False
 				if event.key == pygame.K_p:
-					print("P key pressed")
 					if pause == False:
 						pause = True
 					elif pause == True:
@@ -433,7 +443,6 @@ def main():
 				else:
 					nash.dir = "right"
 			if keys[pygame.K_r]: #reset nash pos for debugging
-				print("R PRESSED")
 				nash.pos = [10,100]
 
 			if event.type == pygame.KEYUP:
@@ -447,7 +456,6 @@ def main():
 
 		# Pause page (check first!)
 		if pause:
-			print("PAUSING NOW")
 			screen.fill(WHITE)
 			screen.blit(pause_text,[(WIDTH/2)-100,HEIGHT/2])
 		else:
@@ -472,7 +480,7 @@ def main():
 					screen.blit(nash_ansr2, [410,460])
 				if IT_countr >= 160:
 					screen.blit(nash_ansr3, [330,480])
-				if IT_countr >= 195:
+				if IT_countr >= 1:
 					IT_talk_trigger = False
 	
 			# Regular gameplay --> if not on intro screen!
@@ -482,8 +490,8 @@ def main():
 						curr_lvl = lvl
 						break
 				screen.fill(WHITE) # for now, clean it off so we can redraw 
-				nash.pos[0], nash.pos[1] = curr_lvl.events(screen, nash) #handle events in given level -> entity collisions
-        	    												 #      						  level end reached 
+				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen, nash) #handle events in given level -> entity collisions
+        	    												 #      						                              level end reached 
 				curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
 				nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 		# --- update the screen with what we've drawn.
@@ -492,7 +500,7 @@ def main():
 		clock.tick(60)
 		t_1 = time.time()
 		if not intro_trigger and not IT_talk_trigger and not pause:
-			overall_time = overall_time + t_1-t_0
+				overall_time = overall_time + t_1-t_0
 		#---- check if you've run out of time
 		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 			print("nash.timer: ", nash.timer)
