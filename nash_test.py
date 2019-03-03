@@ -55,6 +55,49 @@ def mask(nash,xmin,xmax,ymax):
 	return points, poly
 
 
+def entity_collide(screen,nash,keys,lvl):
+	collided = False
+	#get current yvel, jump state
+	yvel = nash.yvel
+	jump = nash.jump
+	collide_count = 0
+	for entity in lvl.entities:
+		collide_count = collide_count + 1
+		if nash.jump: #cover jump mask case
+			if nash.jump_poly.intersects(entity.poly):
+				collided = True
+		else:
+			if nash.dir == "idle":
+				if nash.idle_poly.intersects(entity.poly):
+					collided = True
+			elif nash.dir == "right" or nash.dir == "left":
+				if nash.walk_poly.intersects(entity.poly):
+					collided = True		
+		#if collided with an entity this loop, move nash and act according to entity type
+		if collided: 
+			if entity.type == "FBI":
+				print("delete it")
+				#pause for a sec or so, draw FBI caught message
+				pygame.time.wait(400)
+				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
+				screen.fill(WHITE)
+				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
+				pygame.display.flip()
+				pygame.time.wait(1080)
+				#reset jump and yvel to 0
+				jump = False
+				yvel = 0
+				return lvl.start[0],lvl.start[1], jump,yvel
+			elif entity.type == "Ladder":
+				if keys[pygame.K_UP]:
+					#nash.pos[1] = nash.pos[1] - 50
+					yvel = -20
+					#jump = False
+		collided = False
+		#fallback for no collisions, return originial position,yvel,jump
+	return nash.pos[0],nash.pos[1], jump, yvel
+
+
 class Scene:
 	def __init__(self,width,height):
 		self.width	= width
@@ -102,59 +145,28 @@ class Level1(Scene):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
-						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),Block(60,580),
-						Block(10,580),Block(-40,580)]
+						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(-22,580),Block(28,580),Block(78,580),
+						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
+						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [FBI(261,548),FBI(301,548)]
+		self.entities = [FBI(561,528,"left"),FBI(272,528,"right"),Ladder(770,540),Ladder(770,500),Ladder(770,460),Ladder(770,420)]#,
+						 #Ladder(770,500),Ladder(770,460),Ladder(770,480),Ladder(770,460),Ladder(770,440),Ladder(770,4),Ladder(),Ladder()]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.end = False
-		self.finish = [11,101]
-		self.start = [10,100]
+		self.finish = [702,260]
+		self.start = [10,300]
 		self.name = "lvl1"
 
-	def events(self,screen,nash):
+	def events(self,screen,nash,keys):
 		#first check if end of level reached 
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
-			print("END REACHED")
-		collided = False
-		#get current yvel, jump state
-		yvel = nash.yvel
-		jump = nash.jump
-		for entity in self.entities:
-			if nash.jump: #cover jump mask case
-				if nash.jump_poly.intersects(entity.poly):
-					collided = True
-			else:
-				if nash.dir == "idle":
-					if nash.idle_poly.intersects(entity.poly):
-						collided = True
-				elif nash.dir == "right" or nash.dir == "left":
-					if nash.walk_poly.intersects(entity.poly):
-						collided = True		
-			#if collided with an entity this loop, move nash and maybe delete entity
-			if collided: 
-				if entity.remove:
-					print("delete it")
-				#pause for a sec or so, draw FBI caught message
-				pygame.time.wait(400)
-				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
-				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
-				pygame.display.flip()
-				pygame.time.wait(1200)
-				#reset jump and yvel to 0
-				jump = False
-				yvel = 0
-				return self.start[0],self.start[1], jump,yvel
-				#collided with FBI, reset nash pos , dont delete this entity though
-			collided = False
-
-		#fallback for no collisions, return originial position
-		return nash.pos[0],nash.pos[1], jump, yvel
+			self.end = True
+		return entity_collide(screen,nash,keys,self)
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
-		screen.blit(self.pic, [0,0])
+		#screen.blit(self.pic, [0,0])
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
 		for entity in self.entities:
@@ -167,15 +179,21 @@ class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
+		self.entities = []
 		self.end = False
 		self.finish = [11,101]
 		self.start = [10,100]
 		self.name = "lvl2"
 
-	def draw(self,screen):
+	def draw(self,screen,nash_time):
 		screen.fill(RED)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
+		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
+		screen.blit(time, [0,0])
+
+	def events(self,screen,nash,keys):
+		return entity_collide(screen,nash,keys,self)
 
 
 class Block():
@@ -186,17 +204,32 @@ class Block():
 		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
-
+ 
 
 class FBI():
-	def __init__(self,x,y):
+	def __init__(self,x,y,direction):
 		self.pos = [x,y]
 		self.width 	= 30
 		self.height = 40
 		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
-		self.points,self.poly = mask(self,0,1.2*self.width,1.3*self.height)
+		self.direction = direction
+		if direction == "right":
+			self.pic = pygame.transform.flip(self.pic,True,False)
+		self.points,self.poly = mask(self,0,1.18*self.width,1.28*self.height) #mask/img go to roughly 36,52
 		self.remove = False
+		self.type = "FBI"
+
+
+class Ladder():
+	def __init__(self,x,y):
+		self.pos = [x,y]
+		self.width 	= 30
+		self.height = 21
+		self.pic = pygame.image.load("pics/ladder.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
+		self.points,self.poly = mask(self,0,self.width,self.height) 
+		self.type = "Ladder"
 
 
 class Player():
@@ -381,11 +414,11 @@ def main():
 	flickr_count = 0
 	#music
 	pygame.mixer.music.load('BeepBox-Song.wav')
-	pygame.mixer.music.play(-1)
+	#pygame.mixer.music.play(-1)
 	call = pygame.image.load("pics/call.png").convert_alpha() #IT image
 	call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 	#add a nash and generate levels
-	nash	= Nash(10,100)
+	nash	= Nash(10,300)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
 	lvl1	= Level1(WIDTH,HEIGHT,screen)
 	lvl2	= Level2(WIDTH,HEIGHT,screen)
@@ -419,7 +452,7 @@ def main():
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
 					if nash.still_fall == False:
-						nash.yvel = -33 
+						nash.yvel = -35 
 						nash.jump = True
 					else:
 						nash.jump = False
@@ -490,10 +523,9 @@ def main():
 						curr_lvl = lvl
 						break
 				screen.fill(WHITE) # for now, clean it off so we can redraw 
-				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen, nash) #handle events in given level -> entity collisions
-        	    												 #      						                              level end reached 
 				curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
 				nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
+				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen,nash,keys) #handle events in level -> entity collisions, level end
 		# --- update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
