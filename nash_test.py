@@ -30,6 +30,7 @@ g = 9.8
 
 
 def convert_time(time):
+	#convert time from counter to mins:secs
 	mins = str(int(time/60))
 	if len(mins) == 1:
 		mins = "0"+mins
@@ -42,6 +43,7 @@ def convert_time(time):
 
 
 def mask(nash,xmin,xmax,ymax):
+	#make a polygon that defines collision mask for object
 	top_right	= np.array([nash.pos[0]+xmax,nash.pos[1]+ymax]) 
 	top_left	= np.array([nash.pos[0]+xmin,nash.pos[1]+ymax])			
 	btm_right	= np.array([nash.pos[0]+xmax,nash.pos[1]])		#ymin is assumed to always be 0
@@ -56,6 +58,7 @@ def mask(nash,xmin,xmax,ymax):
 
 
 def entity_collide(screen,nash,keys,lvl):
+	#collision check for items/enemies/special blocks
 	collided = False
 	#get current yvel, jump state
 	yvel = nash.yvel
@@ -84,15 +87,15 @@ def entity_collide(screen,nash,keys,lvl):
 				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
 				pygame.display.flip()
 				pygame.time.wait(1080)
-				#reset jump and yvel to 0
+				#set jump and yvel to 0
 				jump = False
 				yvel = 0
 				return lvl.start[0],lvl.start[1], jump,yvel
 			elif entity.type == "Ladder":
 				if keys[pygame.K_UP]:
-					#nash.pos[1] = nash.pos[1] - 50
+					#send nash up the ladder
 					yvel = -20
-					#jump = False
+					jump = True
 		collided = False
 		#fallback for no collisions, return originial position,yvel,jump
 	return nash.pos[0],nash.pos[1], jump, yvel
@@ -100,6 +103,7 @@ def entity_collide(screen,nash,keys,lvl):
 
 class Scene:
 	def __init__(self,width,height):
+		#define level boundaries and whether its "over"
 		self.width	= width
 		self.height	= height
 		self.top_right	= np.array([self.width,self.height])  
@@ -113,13 +117,13 @@ class Scene:
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
 		self.timer = 0
+		self.over = False
 
 
 class Title_lvl(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		self.blocks = []
-		self.over	= False
 		self.name = "title"
 
 	def draw(self,screen):
@@ -149,19 +153,19 @@ class Level1(Scene):
 						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
 						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [FBI(561,528,"left"),FBI(272,528,"right"),Ladder(770,540),Ladder(770,500),Ladder(770,460),Ladder(770,420)]#,
+		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Ladder(765,529),Ladder(765,478)]#,Ladder(770,538),Ladder(770,517),Ladder(770,496)]#,
 						 #Ladder(770,500),Ladder(770,460),Ladder(770,480),Ladder(770,460),Ladder(770,440),Ladder(770,4),Ladder(),Ladder()]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
-		self.end = False
-		self.finish = [702,260]
+		self.finish = [702,160]
 		self.start = [10,300]
 		self.name = "lvl1"
 
 	def events(self,screen,nash,keys):
 		#first check if end of level reached 
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
-			self.end = True
+			self.over = True
+		#check for special objects collisions
 		return entity_collide(screen,nash,keys,self)
 
 	def draw(self,screen,nash_time):
@@ -178,9 +182,10 @@ class Level1(Scene):
 class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
+		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
+		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = []
-		self.end = False
 		self.finish = [11,101]
 		self.start = [10,100]
 		self.name = "lvl2"
@@ -210,13 +215,13 @@ class FBI():
 	def __init__(self,x,y,direction):
 		self.pos = [x,y]
 		self.width 	= 30
-		self.height = 40
+		self.height = 34
 		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
 		self.direction = direction
 		if direction == "right":
 			self.pic = pygame.transform.flip(self.pic,True,False)
-		self.points,self.poly = mask(self,0,1.18*self.width,1.28*self.height) #mask/img go to roughly 36,52
+		self.points,self.poly = mask(self,0,1.15*self.width,1.25*self.height) #mask/img go to roughly 36,44
 		self.remove = False
 		self.type = "FBI"
 
@@ -225,10 +230,10 @@ class Ladder():
 	def __init__(self,x,y):
 		self.pos = [x,y]
 		self.width 	= 30
-		self.height = 21
+		self.height = 51
 		self.pic = pygame.image.load("pics/ladder.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
-		self.points,self.poly = mask(self,0,self.width,self.height) 
+		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
 
 
@@ -420,8 +425,8 @@ def main():
 	#add a nash and generate levels
 	nash	= Nash(10,300)
 	title	= Title_lvl(WIDTH,HEIGHT,screen)
-	lvl1	= Level1(WIDTH,HEIGHT,screen)
-	lvl2	= Level2(WIDTH,HEIGHT,screen)
+	lvl1	= Level1(WIDTH+5,HEIGHT,screen)   #+5 on width to prevent sticking on walls
+	lvl2	= Level2(WIDTH+5,HEIGHT,screen)
 	levels	= [lvl1,lvl2]
 	curr_lvl = None
 	r_count = 0  #keep track of what was pressed last
@@ -519,13 +524,13 @@ def main():
 			# Regular gameplay --> if not on intro screen!
 			if not intro_trigger and not IT_talk_trigger:
 				for lvl in levels:
-					if lvl.end == False:
+					if lvl.over == False:
 						curr_lvl = lvl
 						break
 				screen.fill(WHITE) # for now, clean it off so we can redraw 
 				curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
 				nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
-				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen,nash,keys) #handle events in level -> entity collisions, level end
+				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
 		# --- update the screen with what we've drawn.
 		pygame.display.flip()
 		# --- Limit to 60 frames per second
