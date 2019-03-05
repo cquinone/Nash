@@ -456,7 +456,7 @@ def main():
 					IT_countr = 0 
 				if keys[pygame.K_UP] and nash.jump == False:
 					if nash.still_fall == False:
-						nash.yvel = -35 
+						nash.yvel = -35 #scale of jump height
 						nash.jump = True
 					else:
 						nash.jump = False
@@ -536,7 +536,7 @@ def main():
 		clock.tick(60)
 		t_1 = time.time()
 		if not intro_trigger and not IT_talk_trigger and not pause:
-				overall_time = overall_time + t_1-t_0
+				overall_time = overall_time + (t_1-t_0)
 		#---- check if you've run out of time
 		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 			print("nash.timer: ", nash.timer)
