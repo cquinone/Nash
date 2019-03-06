@@ -27,9 +27,11 @@ WIDTH = 800
 HEIGHT = 600
 dt = 1/float(4)
 g = 9.8
+overall_time = 0
 
 
 def convert_time(time):
+	#convert time from counter to mins:secs
 	mins = str(int(time/60))
 	if len(mins) == 1:
 		mins = "0"+mins
@@ -42,6 +44,7 @@ def convert_time(time):
 
 
 def mask(nash,xmin,xmax,ymax):
+	#make a polygon that defines collision mask for object
 	top_right	= np.array([nash.pos[0]+xmax,nash.pos[1]+ymax]) 
 	top_left	= np.array([nash.pos[0]+xmin,nash.pos[1]+ymax])			
 	btm_right	= np.array([nash.pos[0]+xmax,nash.pos[1]])		#ymin is assumed to always be 0
@@ -55,8 +58,53 @@ def mask(nash,xmin,xmax,ymax):
 	return points, poly
 
 
+def entity_collide(screen,nash,keys,lvl):
+	#collision check for items/enemies/special blocks
+	collided = False
+	#get current yvel, jump state
+	yvel = nash.yvel
+	jump = nash.jump
+	collide_count = 0
+	for entity in lvl.entities:
+		collide_count = collide_count + 1
+		if nash.jump: #cover jump mask case
+			if nash.jump_poly.intersects(entity.poly):
+				collided = True
+		else:
+			if nash.dir == "idle":
+				if nash.idle_poly.intersects(entity.poly):
+					collided = True
+			elif nash.dir == "right" or nash.dir == "left":
+				if nash.walk_poly.intersects(entity.poly):
+					collided = True		
+		#if collided with an entity this loop, move nash and act according to entity type
+		if collided: 
+			if entity.type == "FBI":
+				print("delete it")
+				#pause for a sec or so, draw FBI caught message
+				pygame.time.wait(400)
+				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
+				screen.fill(WHITE)
+				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
+				pygame.display.flip()
+				pygame.time.wait(1080)
+				#set jump and yvel to 0
+				jump = False
+				yvel = 0
+				return lvl.start[0],lvl.start[1], jump,yvel
+			elif entity.type == "Ladder":
+				if keys[pygame.K_UP]:
+					#send nash up the ladder
+					yvel = -20
+					jump = True
+		collided = False
+		#fallback for no collisions, return originial position,yvel,jump
+	return nash.pos[0],nash.pos[1], jump, yvel
+
+
 class Scene:
 	def __init__(self,width,height):
+		#define level boundaries and whether its "over"
 		self.width	= width
 		self.height	= height
 		self.top_right	= np.array([self.width,self.height])  
@@ -70,13 +118,13 @@ class Scene:
 		self.points = [self.top_left,self.top_right,self.btm_right,self.btm_left]
 		self.poly   = Polygon(self.points)
 		self.timer = 0
+		self.over = False
 
 
 class Title_lvl(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		self.blocks = []
-		self.over	= False
 		self.name = "title"
 
 	def draw(self,screen):
@@ -102,59 +150,37 @@ class Level1(Scene):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
-						Block(425,310),Block(602,315),Block(652,315),Block(702,315),Block(210,580),Block(110,580),Block(60,580),
-						Block(10,580),Block(-40,580)]
+						Block(425,310),Block(607,315),Block(657,315),Block(707,315),Block(-22,580),Block(28,580),Block(78,580),
+						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
+						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [FBI(261,548),FBI(301,548)]
+		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Ladder(765,529),Ladder(765,478),Ladder(765,427),
+		                 Ladder(765,376),Ladder(765,325)]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
-		self.end = False
-		self.finish = [11,101]
-		self.start = [10,100]
+		self.finish = [702,260]
+		self.start = [10,300]
 		self.name = "lvl1"
 
-	def events(self,screen,nash):
-		#first check if end of level reached 
+	def events(self,screen,nash,keys):
+		#first check if end of level reached
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
-			print("END REACHED")
-		collided = False
-		#get current yvel, jump state
-		yvel = nash.yvel
-		jump = nash.jump
-		for entity in self.entities:
-			if nash.jump: #cover jump mask case
-				if nash.jump_poly.intersects(entity.poly):
-					collided = True
-			else:
-				if nash.dir == "idle":
-					if nash.idle_poly.intersects(entity.poly):
-						collided = True
-				elif nash.dir == "right" or nash.dir == "left":
-					if nash.walk_poly.intersects(entity.poly):
-						collided = True		
-			#if collided with an entity this loop, move nash and maybe delete entity
-			if collided: 
-				if entity.remove:
-					print("delete it")
-				#pause for a sec or so, draw FBI caught message
-				pygame.time.wait(400)
-				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
-				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
-				pygame.display.flip()
-				pygame.time.wait(1200)
-				#reset jump and yvel to 0
-				jump = False
-				yvel = 0
-				return self.start[0],self.start[1], jump,yvel
-				#collided with FBI, reset nash pos , dont delete this entity though
-			collided = False
-
-		#fallback for no collisions, return originial position
-		return nash.pos[0],nash.pos[1], jump, yvel
+			self.over = True
+			#print level end message
+			lvl_over_text1 = Midfont.render("Kris Kristofferson's music",True, BLACK)
+			lvl_over_text2 = Midfont.render("is not a legitimate excuse",True,BLACK)
+			screen.blit(lvl_over_text1, [nash.pos[0]-250,nash.pos[1]-50])
+			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-30])
+			pygame.display.flip()
+			pygame.time.wait(1120)
+			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, self.over
+		#check for special objects collisions (keys = keyboard state)
+		nash.pos[0],nash.pos[1],nash.jump,nash.yvel = entity_collide(screen,nash,keys,self)
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,self.over
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
-		screen.blit(self.pic, [0,0])
+		#screen.blit(self.pic, [0,0])
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
 		for entity in self.entities:
@@ -166,16 +192,24 @@ class Level1(Scene):
 class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
+		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
-		self.end = False
+		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
+		self.entities = []
 		self.finish = [11,101]
 		self.start = [10,100]
 		self.name = "lvl2"
 
-	def draw(self,screen):
-		screen.fill(RED)
+	def draw(self,screen,nash_time):
+		screen.fill(WHITE)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
+		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
+		screen.blit(time, [0,0])
+
+	def events(self,screen,nash,keys):
+		nash.pos[0],nash.pos[1],nash.jump,nash.yvel = entity_collide(screen,nash,keys,self)
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,self.over
 
 
 class Block():
@@ -186,17 +220,33 @@ class Block():
 		self.pic = pygame.image.load("pics/block.png").convert()
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
-
+ 
 
 class FBI():
+	def __init__(self,x,y,direction):
+		self.pos = [x,y]
+		self.width 	= 30
+		self.height = 34
+		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
+		self.direction = direction
+		if direction == "right":
+			self.pic = pygame.transform.flip(self.pic,True,False)
+		self.points,self.poly = mask(self,0,1.15*self.width,1.25*self.height) #mask/img go to roughly 36,44
+		self.remove = False
+		self.type = "FBI"
+
+
+
+class Ladder():
 	def __init__(self,x,y):
 		self.pos = [x,y]
 		self.width 	= 30
-		self.height = 40
-		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
-		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
-		self.points,self.poly = mask(self,0,1.2*self.width,1.3*self.height)
-		self.remove = False
+		self.height = 51
+		self.pic = pygame.image.load("pics/ladder.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
+		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
+		self.type = "Ladder"
 
 
 class Player():
@@ -364,152 +414,149 @@ class Nash(Player):
 
 	def outside(self,lvl,nash_poly):
 		rel = lvl.poly.relate(nash_poly)
-		return rel[0] == '2' and rel[6] == 'F' #if at least one point is in inside and nothing outside?
+		return rel[0] == '2' and rel[6] == 'F' #if at least one point is in inside and nothing outside
 
 
-def main():
-	# Set the width and height of the screen [width, height]
-	size = (WIDTH, HEIGHT)
-	screen = pygame.display.set_mode(size)	 
-	pygame.display.set_caption("NASH")
-	# Loop until the user clicks the close button.
-	done = False 
-	# Used to manage how fast the screen updates
-	clock = pygame.time.Clock()
-	intro_trigger = True
-	IT_talk_trigger = False
-	flickr_count = 0
-	#music
-	pygame.mixer.music.load('BeepBox-Song.wav')
-	pygame.mixer.music.play(-1)
-	call = pygame.image.load("pics/call.png").convert_alpha() #IT image
-	call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
-	#add a nash and generate levels
-	nash	= Nash(10,100)
-	title	= Title_lvl(WIDTH,HEIGHT,screen)
-	lvl1	= Level1(WIDTH,HEIGHT,screen)
-	lvl2	= Level2(WIDTH,HEIGHT,screen)
-	levels	= [lvl1,lvl2]
-	curr_lvl = None
-	r_count = 0  #keep track of what was pressed last
-	l_count = 0
-	overall_time = 0
-	pause = False
-	#some things to blit to screen
-	pause_text = Titlefont.render("PAUSED",True,RED)
-	it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
-	it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
-	it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
-	nash_ansr1 = Midfont.render("Uhhhh ....",True, BLACK)
-	nash_ansr2 = Midfont.render("fine.",True,BLACK)
-	nash_ansr3 = Midfont.render("Just give me five minutes.",True,BLACK)
-	# -------- Main Program Loop -----------
-	while not done:
-		t_0 = time.time()
-		# --- Main event loop --> runs every time, getting event that's happened?
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				done = True
-				break
-			keys = pygame.key.get_pressed()
-			if event.type == pygame.KEYDOWN:
-				if intro_trigger == True and event.key == pygame.K_RETURN:
-					intro_trigger = False
-					IT_talk_trigger = True
-					IT_countr = 0 
-				if keys[pygame.K_UP] and nash.jump == False:
-					if nash.still_fall == False:
-						nash.yvel = -33 
-						nash.jump = True
-					else:
-						nash.jump = False
-				if event.key == pygame.K_p:
-					if pause == False:
-						pause = True
-					elif pause == True:
-						pause = False
-
-			if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
-				nash.dir = "right"
-				r_count = r_count + 1
-			if keys[pygame.K_LEFT]:
-				nash.dir = "left"
-				l_count = l_count + 1
-			if keys[pygame.K_RIGHT] and keys[pygame.K_LEFT]:
-				if r_count < l_count:
-					nash.dir = "right"
-				if l_count < r_count:
-					nash.dir = "left"
-				else:
-					nash.dir = "right"
-			if keys[pygame.K_r]: #reset nash pos for debugging
-				nash.pos = [10,100]
-
-			if event.type == pygame.KEYUP:
-				if not keys[pygame.K_LEFT]:
-					l_count = 0
-				if not keys[pygame.K_RIGHT]:
-					r_count = 0
-				if r_count == 0 and l_count == 0:
-					nash.dir = "idle"
-					nash.walk = False
-
-		# Pause page (check first!)
-		if pause:
-			screen.fill(WHITE)
-			screen.blit(pause_text,[(WIDTH/2)-100,HEIGHT/2])
-		else:
-		    # Intro Page ---> Runs if no ENTER key events have happened
-			if intro_trigger and not IT_talk_trigger:
-				title.draw(screen)
-			#Secondary intro page  ---> runs after enter key, before lvls
-			if IT_talk_trigger:
-				screen.fill(WHITE)
-				screen.blit(call, [0,0])
-				IT_countr += 1
-				#draw the IT stuff and text
-				if IT_countr >= 20:
-					screen.blit(it_1, [220, 40])
-				if IT_countr >= 50:
-					screen.blit(it_2, [220, 60])
-				if IT_countr >= 70:
-					screen.blit(it_3, [230, 80])
-				if IT_countr >= 100:
-					screen.blit(nash_ansr1, [330,460])
-				if IT_countr >= 130:
-					screen.blit(nash_ansr2, [410,460])
-				if IT_countr >= 160:
-					screen.blit(nash_ansr3, [330,480])
-				if IT_countr >= 1:
-					IT_talk_trigger = False
-	
-			# Regular gameplay --> if not on intro screen!
-			if not intro_trigger and not IT_talk_trigger:
-				for lvl in levels:
-					if lvl.end == False:
-						curr_lvl = lvl
-						break
-				screen.fill(WHITE) # for now, clean it off so we can redraw 
-				nash.pos[0], nash.pos[1],nash.jump,nash.yvel = curr_lvl.events(screen, nash) #handle events in given level -> entity collisions
-        	    												 #      						                              level end reached 
-				curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
-				nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
-		# --- update the screen with what we've drawn.
-		pygame.display.flip()
-		# --- Limit to 60 frames per second
-		clock.tick(60)
-		t_1 = time.time()
-		if not intro_trigger and not IT_talk_trigger and not pause:
-				overall_time = overall_time + t_1-t_0
-		#---- check if you've run out of time
-		if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
-			print("nash.timer: ", nash.timer)
-			print("GAME OVER")
+# Set the width and height of the screen [width, height]
+size = (WIDTH, HEIGHT)
+screen = pygame.display.set_mode(size)	 
+pygame.display.set_caption("NASH")
+# Loop until the user clicks the close button.
+done = False 
+# Used to manage how fast the screen updates
+clock = pygame.time.Clock()
+intro_trigger = True
+IT_talk_trigger = False
+flickr_count = 0
+#music
+pygame.mixer.music.load('BeepBox-Song.wav')
+pygame.mixer.music.play(-1)
+call = pygame.image.load("pics/call.png").convert_alpha() #IT image
+call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
+#add a nash and generate levels
+nash	= Nash(10,300)
+title	= Title_lvl(WIDTH,HEIGHT,screen)
+lvl1	= Level1(WIDTH+5,HEIGHT,screen)   #+5 on width to prevent sticking on walls
+lvl2	= Level2(WIDTH+5,HEIGHT,screen)
+levels	= [lvl1,lvl2]
+curr_lvl = None
+r_count = 0  #keep track of what was pressed last
+l_count = 0
+pause = False
+#some things to blit to screen
+pause_text = Titlefont.render("PAUSED",True,RED)
+it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
+it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
+it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
+nash_ansr1 = Midfont.render("Uhhhh ....",True, BLACK)
+nash_ansr2 = Midfont.render("fine.",True,BLACK)
+nash_ansr3 = Midfont.render("Just give me five minutes.",True,BLACK)
+# -------- Main Program Loop -----------
+while not done:
+	t_0 = time.time()
+	# --- Main event loop --> runs every time, getting event that's happened?
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			done = True
 			break
-	# Close the window and quit.
-	# ---> here put lost end screen (if you ran out of time)
-	pygame.quit()
+		keys = pygame.key.get_pressed()
+		if event.type == pygame.KEYDOWN:
+			if intro_trigger == True and event.key == pygame.K_RETURN:
+				intro_trigger = False
+				IT_talk_trigger = True
+				IT_countr = 0 
+			if keys[pygame.K_UP] and nash.jump == False:
+				if nash.still_fall == False:
+					nash.yvel = -35 #scale of jump height
+					nash.jump = True
+				else:
+					nash.jump = False
+			if event.key == pygame.K_p:
+				if pause == False:
+					pause = True
+				elif pause == True:
+					pause = False
 
+		if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
+			nash.dir = "right"
+			r_count = r_count + 1
+		if keys[pygame.K_LEFT]:
+			nash.dir = "left"
+			l_count = l_count + 1
+		if keys[pygame.K_RIGHT] and keys[pygame.K_LEFT]:
+			if r_count < l_count:
+				nash.dir = "right"
+			if l_count < r_count:
+				nash.dir = "left"
+			else:
+				nash.dir = "right"
+		if keys[pygame.K_r]: #reset nash pos for debugging
+			nash.pos = [10,100]
 
-if __name__ == "__main__":
-	main()
+		if event.type == pygame.KEYUP:
+			if not keys[pygame.K_LEFT]:
+				l_count = 0
+			if not keys[pygame.K_RIGHT]:
+				r_count = 0
+			if r_count == 0 and l_count == 0:
+				nash.dir = "idle"
+				nash.walk = False
+
+	# Pause page (check first!)
+	if pause:
+		screen.fill(WHITE)
+		screen.blit(pause_text,[(WIDTH/2)-100,HEIGHT/2])
+	else:
+	    # Intro Page ---> Runs if no ENTER key events have happened
+		if intro_trigger and not IT_talk_trigger:
+			title.draw(screen)
+		#Secondary intro page  ---> runs after enter key, before lvls
+		if IT_talk_trigger:
+			screen.fill(WHITE)
+			screen.blit(call, [0,0])
+			IT_countr += 1
+			#draw the IT stuff and text
+			if IT_countr >= 20:
+				screen.blit(it_1, [220, 40])
+			if IT_countr >= 50:
+				screen.blit(it_2, [220, 60])
+			if IT_countr >= 70:
+				screen.blit(it_3, [230, 80])
+			if IT_countr >= 100:
+				screen.blit(nash_ansr1, [330,460])
+			if IT_countr >= 130:
+				screen.blit(nash_ansr2, [410,460])
+			if IT_countr >= 160:
+				screen.blit(nash_ansr3, [330,480])
+			if IT_countr >= 1:
+				IT_talk_trigger = False
+
+		# Regular gameplay --> if not on intro screen!
+		if not intro_trigger and not IT_talk_trigger:
+			for lvl in levels:
+				if lvl.over == False:
+					curr_lvl = lvl
+					break
+			screen.fill(WHITE) # for now, clean it off so we can redraw 
+			curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
+			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
+			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,is_finished = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			if is_finished and curr_lvl.name != "lvl5":
+				#move nash to start postion of next level on level finish (before next level actually starts)
+				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
+				nash.pos[1] = levels[(levels.index(curr_lvl) + 1)].start[1]
+	# --- update the screen with what we've drawn.
+	pygame.display.flip()
+	# --- Limit to 60 frames per second
+	clock.tick(60)
+	t_1 = time.time()
+	if not intro_trigger and not IT_talk_trigger and not pause:
+			overall_time = overall_time + (t_1-t_0)
+	#---- check if you've run out of time
+	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
+		print("nash.timer: ", nash.timer)
+		print("GAME OVER")
+		break
+# Close the window and quit.
+# ---> here put lost end screen (if you ran out of time)
+pygame.quit()

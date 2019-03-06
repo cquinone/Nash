@@ -65,3 +65,7 @@ feb 28
 handle pause issue that drains clock
 add another FBI agent
 redo background art after level finished
+
+march 5
+---------------------
+have each lvl point to next, and on finish, send nash coords of next lvl start
