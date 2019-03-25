@@ -69,3 +69,9 @@ redo background art after level finished
 march 5
 ---------------------
 have each lvl point to next, and on finish, send nash coords of next lvl start
+actually don't need, pass level end state, if ever over, move nash to start position of next level start
+^next level == next level in list of levels
+
+march 6
+---------------------
+make nash +time item a banjo

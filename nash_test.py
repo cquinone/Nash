@@ -64,9 +64,8 @@ def entity_collide(screen,nash,keys,lvl):
 	#get current yvel, jump state
 	yvel = nash.yvel
 	jump = nash.jump
-	collide_count = 0
+	banjo = False
 	for entity in lvl.entities:
-		collide_count = collide_count + 1
 		if nash.jump: #cover jump mask case
 			if nash.jump_poly.intersects(entity.poly):
 				collided = True
@@ -80,10 +79,9 @@ def entity_collide(screen,nash,keys,lvl):
 		#if collided with an entity this loop, move nash and act according to entity type
 		if collided: 
 			if entity.type == "FBI":
-				print("delete it")
 				#pause for a sec or so, draw FBI caught message
 				pygame.time.wait(400)
-				collide_text = Startfont.render("The FBI caught you.",True, BLACK)
+				collide_text = Startfont.render("The FBI caught you.", True, BLACK)
 				screen.fill(WHITE)
 				screen.blit(collide_text, [WIDTH/2-100,HEIGHT/2])
 				pygame.display.flip()
@@ -91,15 +89,23 @@ def entity_collide(screen,nash,keys,lvl):
 				#set jump and yvel to 0
 				jump = False
 				yvel = 0
-				return lvl.start[0],lvl.start[1], jump,yvel
+				return lvl.start[0],lvl.start[1], jump,yvel,banjo
 			elif entity.type == "Ladder":
 				if keys[pygame.K_UP]:
 					#send nash up the ladder
 					yvel = -20
 					jump = True
+			elif entity.type == "Banjo":
+				collide_text = Midfont.render("Banjo found! +5 seconds!", True, BLACK)
+				screen.blit(collide_text, [nash.pos[0], nash.pos[1]-20])
+				pygame.display.flip()
+				pygame.time.wait(1080)
+				lvl.entities.remove(entity)
+				banjo = True
+
 		collided = False
 		#fallback for no collisions, return originial position,yvel,jump
-	return nash.pos[0],nash.pos[1], jump, yvel
+	return nash.pos[0],nash.pos[1], jump, yvel, banjo
 
 
 class Scene:
@@ -154,7 +160,7 @@ class Level1(Scene):
 						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
 						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Ladder(765,529),Ladder(765,478),Ladder(765,427),
+		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Banjo(412,550),Ladder(765,529),Ladder(765,478),Ladder(765,427),
 		                 Ladder(765,376),Ladder(765,325)]
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
@@ -163,6 +169,8 @@ class Level1(Scene):
 		self.name = "lvl1"
 
 	def events(self,screen,nash,keys):
+		lvl_stats = {"over": False,
+		             "banjo": False}
 		#first check if end of level reached
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
 			self.over = True
@@ -173,10 +181,12 @@ class Level1(Scene):
 			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-30])
 			pygame.display.flip()
 			pygame.time.wait(1120)
-			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, self.over
-		#check for special objects collisions (keys = keyboard state)
-		nash.pos[0],nash.pos[1],nash.jump,nash.yvel = entity_collide(screen,nash,keys,self)
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,self.over
+			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, lvl_stats
+			#check for special objects collisions (keys = keyboard state)
+		nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo = entity_collide(screen,nash,keys,self)
+		lvl_stats["over"] = self.over
+		lvl_stats["banjo"] = banjo
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,lvl_stats
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
@@ -204,12 +214,25 @@ class Level2(Scene):
 		screen.fill(WHITE)
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
+		for entity in self.entities:
+			screen.blit(entity.pic,entity.pos)
 		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
 		screen.blit(time, [0,0])
 
 	def events(self,screen,nash,keys):
-		nash.pos[0],nash.pos[1],nash.jump,nash.yvel = entity_collide(screen,nash,keys,self)
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,self.over
+		lvl_stats = {"over": False,
+		             "banjo": False}
+		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
+			self.over = True
+			#print level end message
+			lvl_over_text = Midfont.render("TIM GET OUTTA MY HOUSE",True, BLACK)
+			screen.blit(lvl_over_text, [nash.pos[0]-250,nash.pos[1]-50])
+			pygame.display.flip()
+			pygame.time.wait(1120)
+			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, lvl_stats
+		
+		nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo = entity_collide(screen,nash,keys,self)
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, lvl_stats
 
 
 class Block():
@@ -233,7 +256,6 @@ class FBI():
 		if direction == "right":
 			self.pic = pygame.transform.flip(self.pic,True,False)
 		self.points,self.poly = mask(self,0,1.15*self.width,1.25*self.height) #mask/img go to roughly 36,44
-		self.remove = False
 		self.type = "FBI"
 
 
@@ -247,6 +269,18 @@ class Ladder():
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
 		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
+
+
+class Banjo():
+	def __init__(self,x,y):
+		self.pos = [x,y]
+		self.width = 54.3
+		self.height = 16
+		self.pic = pygame.image.load("pics/banjo.png").convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
+		self.pic = pygame.transform.rotate(self.pic,0)
+		self.points,self.poly = mask(self,0,self.width,self.height) 
+		self.type = "Banjo"
 
 
 class Player():
@@ -430,7 +464,7 @@ IT_talk_trigger = False
 flickr_count = 0
 #music
 pygame.mixer.music.load('BeepBox-Song.wav')
-pygame.mixer.music.play(-1)
+#pygame.mixer.music.play(-1)
 call = pygame.image.load("pics/call.png").convert_alpha() #IT image
 call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 #add a nash and generate levels
@@ -528,10 +562,10 @@ while not done:
 				screen.blit(nash_ansr2, [410,460])
 			if IT_countr >= 160:
 				screen.blit(nash_ansr3, [330,480])
-			if IT_countr >= 1:
+			if IT_countr >= 195:
 				IT_talk_trigger = False
 
-		# Regular gameplay --> if not on intro screen!
+		# Regular gameplay --> if not on an intro screen!
 		if not intro_trigger and not IT_talk_trigger:
 			for lvl in levels:
 				if lvl.over == False:
@@ -540,8 +574,8 @@ while not done:
 			screen.fill(WHITE) # for now, clean it off so we can redraw 
 			curr_lvl.draw(screen,convert_time(300-overall_time))  # (before nash drawn!)
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
-			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,is_finished = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
-			if is_finished and curr_lvl.name != "lvl5":
+			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,lvl_stats = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			if lvl_stats["over"] and curr_lvl.name != "lvl5":
 				#move nash to start postion of next level on level finish (before next level actually starts)
 				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
 				nash.pos[1] = levels[(levels.index(curr_lvl) + 1)].start[1]
@@ -552,6 +586,8 @@ while not done:
 	t_1 = time.time()
 	if not intro_trigger and not IT_talk_trigger and not pause:
 			overall_time = overall_time + (t_1-t_0)
+			if lvl_stats["banjo"]:
+				overall_time = overall_time - 5
 	#---- check if you've run out of time
 	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 		print("nash.timer: ", nash.timer)
