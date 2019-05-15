@@ -180,7 +180,7 @@ class Level1(Scene):
 			screen.blit(lvl_over_text1, [nash.pos[0]-250,nash.pos[1]-50])
 			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-30])
 			pygame.display.flip()
-			pygame.time.wait(1120)
+			pygame.time.wait(1320)
 			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, lvl_stats
 			#check for special objects collisions (keys = keyboard state)
 		nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo = entity_collide(screen,nash,keys,self)
@@ -203,7 +203,7 @@ class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60), Block(200,HEIGHT-80)]
+		self.blocks = [Block(100,HEIGHT-40),Block(200,HEIGHT-60)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = []
 		self.finish = [11,101]
@@ -235,22 +235,24 @@ class Level2(Scene):
 		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, lvl_stats
 
 
-class Block():
-	def __init__(self,x,y):
+class Item():
+	def __init__(self,x,y,w,h,image):
 		self.pos = [x,y]
-		self.width 	= 50
-		self.height = 20
-		self.pic = pygame.image.load("pics/block.png").convert()
+		self.width  = w 
+		self.height = h
+		self.pic = pygame.image.load(image).convert_alpha()
+
+
+class Block(Item):
+	def __init__(self,x,y):
+		super().__init__(x,y,50,20,"pics/block.png")
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
  
 
-class FBI():
+class FBI(Item):
 	def __init__(self,x,y,direction):
-		self.pos = [x,y]
-		self.width 	= 30
-		self.height = 34
-		self.pic = pygame.image.load("pics/FBI.png").convert_alpha()
+		super().__init__(x,y,30,34,"pics/FBI.png")
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
 		self.direction = direction
 		if direction == "right":
@@ -260,27 +262,26 @@ class FBI():
 
 
 
-class Ladder():
+class Ladder(Item):
 	def __init__(self,x,y):
-		self.pos = [x,y]
-		self.width 	= 30
-		self.height = 51
-		self.pic = pygame.image.load("pics/ladder.png").convert_alpha()
+		super().__init__(x,y,30,51,"pics/ladder.png")
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
 		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
 
 
-class Banjo():
+class Banjo(Item):
 	def __init__(self,x,y):
-		self.pos = [x,y]
-		self.width = 54.3
-		self.height = 16
-		self.pic = pygame.image.load("pics/banjo.png").convert_alpha()
+		super().__init__(x,y,54.3,16,"pics/banjo.png")
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
 		self.pic = pygame.transform.rotate(self.pic,0)
 		self.points,self.poly = mask(self,0,self.width,self.height) 
 		self.type = "Banjo"
+
+
+class Extra_Credit():
+	def init(self,x,y):
+		self.pos = [x,y]
 
 
 class Player():
@@ -291,7 +292,7 @@ class Player():
 class Nash(Player):
 	def __init__(self,x,y):
 		super().__init__()
-		self.pos = [x, y]
+		self.pos = [x,y]
 		self.width  = 38 #1.6 multiplied by 24x34 (the actual size of nash image, not canvas)
 		self.height = 54
 		self.name	= "Nash"
@@ -464,7 +465,7 @@ IT_talk_trigger = False
 flickr_count = 0
 #music
 pygame.mixer.music.load('BeepBox-Song.wav')
-#pygame.mixer.music.play(-1)
+pygame.mixer.music.play(-1)
 call = pygame.image.load("pics/call.png").convert_alpha() #IT image
 call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 #add a nash and generate levels
