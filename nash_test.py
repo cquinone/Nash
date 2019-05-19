@@ -1,3 +1,4 @@
+import stack_queue
 import pygame,os
 import pygame.font
 from pygame.locals import *
@@ -71,8 +72,8 @@ def entity_collide(screen,nash,keys,lvl):
 	#preprocess entities and throw in projectiles
 	for entity in lvl.entities:
 		all_entities.append(entity)
-		if entity.projectiles:
-			for projectile in entity.projectiles:
+		if not entity.projectiles.isEmpty():
+			for projectile in entity.projectiles.data:
 				all_entities.append(projectile)
 
 
@@ -105,7 +106,7 @@ def entity_collide(screen,nash,keys,lvl):
 				return lvl.start[0],lvl.start[1],jump,yvel,banjo
 			
 			elif entity.type == "Ladder":
-				if keys[pygame.K_UP]:
+				if keys[pygame.K_i]:
 					#send nash up the ladder
 					yvel = -20
 					jump = True
@@ -248,8 +249,8 @@ class Level2(Scene):
 		# then entities
 		for entity in self.entities:
 			# make sure to draw projectiles
-			if entity.projectiles:
-				for projectile in entity.projectiles:
+			if not entity.projectiles.isEmpty():
+				for projectile in entity.projectiles.data:
 					screen.blit(projectile.pic, projectile.pos)
 			
 			screen.blit(entity.pic,entity.pos)
@@ -284,14 +285,14 @@ class Item():
 
 class Block(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,50,20,"pics/block.png",[])
+		super().__init__(x,y,50,20,"pics/block.png",stack_queue.Queue())
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
  
 
 class FBI(Item):
 	def __init__(self,x,y,direction):
-		super().__init__(x,y,30,34,"pics/FBI.png",[])
+		super().__init__(x,y,30,34,"pics/FBI.png",stack_queue.Queue())
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
 		self.direction = direction
 		if direction == "right":
@@ -302,7 +303,7 @@ class FBI(Item):
 
 class Ladder(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,30,51,"pics/ladder.png",[])
+		super().__init__(x,y,30,51,"pics/ladder.png",stack_queue.Queue())
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
 		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
@@ -310,7 +311,7 @@ class Ladder(Item):
 
 class Banjo(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,54.3,16,"pics/banjo.png",[])
+		super().__init__(x,y,54.3,16,"pics/banjo.png",stack_queue.Queue())
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
 		self.pic = pygame.transform.rotate(self.pic,0)
 		self.points,self.poly = mask(self,0,self.width,self.height) 
@@ -324,7 +325,8 @@ class Extra_Credit():
 
 class Tim(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,19,15,"pics/prize.png",[Puff(x+5,y)])
+		super().__init__(x,y,19,15,"pics/prize.png",stack_queue.Queue())
+		self.projectiles.push(Puff(x+5,y))  # add initial puff
 		self.start = True
 		self.track = [x * .8 for x in range(self.pos[0], self.pos[0]+25)]  # range of steps, each .1 long
 		self.step = 0
@@ -347,6 +349,9 @@ class Tim(Item):
 				self.pos[0] = self.track[self.step]
 			else:
 				self.start = True
+
+		# now update mask position
+		self.points,self.poly = mask(self,0,self.width,self.height)
 
 		# update how many puffs
 
@@ -575,7 +580,7 @@ while not done:
 				intro_trigger = False
 				IT_talk_trigger = True
 				IT_countr = 0 
-			if keys[pygame.K_UP] and nash.jump == False:
+			if keys[pygame.K_i] and nash.jump == False:
 				if nash.still_fall == False:
 					nash.yvel = -35 #scale of jump height
 					nash.jump = True
@@ -587,13 +592,13 @@ while not done:
 				elif pause == True:
 					pause = False
 
-		if keys[pygame.K_RIGHT]:	#continually search for depression of right/left
+		if keys[pygame.K_l]:	#continually search for depression of right/left
 			nash.dir = "right"
 			r_count = r_count + 1
-		if keys[pygame.K_LEFT]:
+		if keys[pygame.K_j]:
 			nash.dir = "left"
 			l_count = l_count + 1
-		if keys[pygame.K_RIGHT] and keys[pygame.K_LEFT]:
+		if keys[pygame.K_l] and keys[pygame.K_j]:
 			if r_count < l_count:
 				nash.dir = "right"
 			if l_count < r_count:
@@ -604,9 +609,9 @@ while not done:
 			nash.pos = [10,100]
 
 		if event.type == pygame.KEYUP:
-			if not keys[pygame.K_LEFT]:
+			if not keys[pygame.K_j]:
 				l_count = 0
-			if not keys[pygame.K_RIGHT]:
+			if not keys[pygame.K_l]:
 				r_count = 0
 			if r_count == 0 and l_count == 0:
 				nash.dir = "idle"
@@ -648,15 +653,6 @@ while not done:
 					curr_lvl = lvl
 					break
 			screen.fill(WHITE) # for now, clean it off so we can redraw 
-
-			# update enemies before drawing (only tim for right now)
-			for entity in curr_lvl.entities:
-				if isinstance(entity, Tim):
-					entity.update()
-					# update puff positions for this tim --> in pff update, deal with too many / pos?
-					# first puff / adding more puffs / dealing / moving
-					# all contained within tim update
-					# updates position, projectiles, etc.
 			
 			# draw level before nash is drawn
 			curr_lvl.draw(screen,convert_time(300-overall_time))
@@ -666,6 +662,16 @@ while not done:
 			
 			# trigger events for the level
 			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,lvl_stats = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+
+			# update enemies (only tim for right now)
+			for entity in curr_lvl.entities:
+				if isinstance(entity, Tim):
+					entity.update()
+					# update puff positions for this tim --> in pff update, deal with too many / pos?
+					# first puff / adding more puffs / dealing / moving
+					# all contained within tim update
+					# updates position, projectiles, etc.
+			
 			if lvl_stats["over"] and curr_lvl.name != "lvl5":
 				#move nash to start postion of next level on level finish (before next level actually starts)
 				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
