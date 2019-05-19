@@ -232,9 +232,9 @@ class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(0,450), Block(100,HEIGHT-40),Block(200,HEIGHT-20)]
+		self.blocks = [Block(0,450), Block(100,0),Block(200,HEIGHT-20)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(200,HEIGHT-30)]
+		self.entities = [Tim(200,HEIGHT-80)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [11,101]
 		self.start = [20,100]
@@ -313,7 +313,6 @@ class Banjo(Item):
 	def __init__(self,x,y):
 		super().__init__(x,y,54.3,16,"pics/banjo.png",stack_queue.Queue())
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
-		self.pic = pygame.transform.rotate(self.pic,0)
 		self.points,self.poly = mask(self,0,self.width,self.height) 
 		self.type = "Banjo"
 
@@ -325,13 +324,14 @@ class Extra_Credit():
 
 class Tim(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,19,15,"pics/prize.png",stack_queue.Queue())
-		self.projectiles.push(Puff(x+5,y))  # add initial puff
+		super().__init__(x,y,30,39,"pics/tim.png",stack_queue.Queue())
+		self.projectiles.push(Puff(x-10,y-10))  # add initial puff
 		self.start = True
-		self.track = [x * .8 for x in range(self.pos[0], self.pos[0]+25)]  # range of steps, each .1 long
+		self.track = [x * .8 for x in range(self.pos[0], self.pos[0]+50)]  # range of steps, each .1 long
 		self.step = 0
 		self.puff_buffer = 10   # timer for how long before creating another puff
-		self.points,self.poly = mask(self,0,self.width,self.height)
+		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.2*self.height)])
+		self.points,self.poly = mask(self,0,self.width,.9*self.height)
 		self.type = "Tim"
 
 	def update(self):
@@ -360,7 +360,7 @@ class Tim(Item):
 
 class Puff(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,50,20,"pics/banjo.png",[])
+		super().__init__(x,y,50,20,"pics/puff.png",[])
 		self.type = "Puff"
 		self.points,self.poly = mask(self,0,46,20)
 
@@ -665,7 +665,7 @@ while not done:
 
 			# update enemies (only tim for right now)
 			for entity in curr_lvl.entities:
-				if isinstance(entity, Tim):
+				if entity.type == "Tim":
 					entity.update()
 					# update puff positions for this tim --> in pff update, deal with too many / pos?
 					# first puff / adding more puffs / dealing / moving
