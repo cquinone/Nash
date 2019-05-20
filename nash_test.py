@@ -1,10 +1,10 @@
-import stack_queue
 import pygame,os
 import pygame.font
 from pygame.locals import *
 from shapely.geometry import Polygon,Point
 import numpy as np
 from matplotlib import pyplot as plt
+import math
 import time
 
 
@@ -72,8 +72,8 @@ def entity_collide(screen,nash,keys,lvl):
 	#preprocess entities and throw in projectiles
 	for entity in lvl.entities:
 		all_entities.append(entity)
-		if not entity.projectiles.isEmpty():
-			for projectile in entity.projectiles.data:
+		if entity.projectiles:
+			for projectile in entity.projectiles:
 				all_entities.append(projectile)
 
 
@@ -102,8 +102,8 @@ def entity_collide(screen,nash,keys,lvl):
 				#set jump and yvel to 0
 				jump = False
 				yvel = 0
-				# return reset nash position = lvl start
-				return lvl.start[0],lvl.start[1],jump,yvel,banjo
+				nash.pos[0] = lvl.start[0]
+				nash.pos[1] = lvl.start[1]
 			
 			elif entity.type == "Ladder":
 				if keys[pygame.K_i]:
@@ -125,8 +125,8 @@ def entity_collide(screen,nash,keys,lvl):
 				#set jump and yvel to 0
 				jump = False
 				yvel = 0
-				# return reset nash position = lvl start
-				return lvl.start[0],lvl.start[1],jump,yvel,banjo
+				nash.pos[0] = lvl.start[0] 
+				nash.pos[1] = lvl.start[1]
 
 			#elif entity.type == "Puff":
 				# puff gets deleted, nash gets reset
@@ -196,11 +196,10 @@ class Level1(Scene):
 		self.name = "lvl1"
 
 	def events(self,screen,nash,keys):
-		lvl_stats = {"over": False,
-		             "banjo": False}
+		banjo_found = False
 		#first check if end of level reached
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
-			self.over = True
+			self.over = True  #
 			#print level end message
 			lvl_over_text1 = Midfont.render("Kris Kristofferson's music",True, BLACK)
 			lvl_over_text2 = Midfont.render("is not a legitimate excuse",True,BLACK)
@@ -208,14 +207,11 @@ class Level1(Scene):
 			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-30])
 			pygame.display.flip()
 			pygame.time.wait(1320)
-			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, lvl_stats
 
-		# check for collisions with entities (non-blocks), keys = keyboard state			
-		nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo = entity_collide(screen,nash,keys,self)
+		else: # check for collisions with entities (non-blocks), keys = keyboard state			
+			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found = entity_collide(screen,nash,keys,self)
 		
-		lvl_stats["over"] = self.over
-		lvl_stats["banjo"] = banjo
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,lvl_stats
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,banjo_found
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
@@ -232,12 +228,13 @@ class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(0,450), Block(100,0),Block(200,HEIGHT-20)]
+		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
+					   Block(450,300),Block(400,300)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(200,HEIGHT-80)]
+		self.entities = [Tim(500,250, "right")]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [11,101]
-		self.start = [20,100]
+		self.start = [550,240]
 		self.name = "lvl2"
 
 	def draw(self,screen,nash_time):
@@ -249,8 +246,8 @@ class Level2(Scene):
 		# then entities
 		for entity in self.entities:
 			# make sure to draw projectiles
-			if not entity.projectiles.isEmpty():
-				for projectile in entity.projectiles.data:
+			if entity.projectiles:
+				for projectile in entity.projectiles:
 					screen.blit(projectile.pic, projectile.pos)
 			
 			screen.blit(entity.pic,entity.pos)
@@ -259,8 +256,7 @@ class Level2(Scene):
 		screen.blit(time, [0,0])
 
 	def events(self,screen,nash,keys):
-		lvl_stats = {"over": False,
-		             "banjo": False}
+		banjo_found = False
 		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
 			self.over = True
 			#print level end message
@@ -268,10 +264,11 @@ class Level2(Scene):
 			screen.blit(lvl_over_text, [nash.pos[0]-250,nash.pos[1]-50])
 			pygame.display.flip()
 			pygame.time.wait(1120)
-			return nash.pos[0],nash.pos[1], nash.jump, nash.yvel, lvl_stats
 		
-		nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo = entity_collide(screen,nash,keys,self)
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, lvl_stats
+		else:
+			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found = entity_collide(screen,nash,keys,self)
+		
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found
 
 
 class Item():
@@ -285,14 +282,14 @@ class Item():
 
 class Block(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,50,20,"pics/block.png",stack_queue.Queue())
+		super().__init__(x,y,50,20,"pics/block.png",[])
 		self.pic.set_colorkey(WHITE)
 		self.points,self.poly = mask(self,0,46,20)
  
 
 class FBI(Item):
 	def __init__(self,x,y,direction):
-		super().__init__(x,y,30,34,"pics/FBI.png",stack_queue.Queue())
+		super().__init__(x,y,30,34,"pics/FBI.png",[])
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
 		self.direction = direction
 		if direction == "right":
@@ -303,7 +300,7 @@ class FBI(Item):
 
 class Ladder(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,30,51,"pics/ladder.png",stack_queue.Queue())
+		super().__init__(x,y,30,51,"pics/ladder.png",[])
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
 		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
@@ -311,7 +308,7 @@ class Ladder(Item):
 
 class Banjo(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,54.3,16,"pics/banjo.png",stack_queue.Queue())
+		super().__init__(x,y,54.3,16,"pics/banjo.png",[])
 		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
 		self.points,self.poly = mask(self,0,self.width,self.height) 
 		self.type = "Banjo"
@@ -323,13 +320,14 @@ class Extra_Credit():
 
 
 class Tim(Item):
-	def __init__(self,x,y):
-		super().__init__(x,y,30,39,"pics/tim.png",stack_queue.Queue())
-		self.projectiles.push(Puff(x-10,y-10))  # add initial puff
+	def __init__(self,x,y,direction):
+		super().__init__(x,y,30,39,"pics/tim.png",[])
 		self.start = True
-		self.track = [x * .8 for x in range(self.pos[0], self.pos[0]+50)]  # range of steps, each .1 long
+		self.track = [i * .8 for i in range(self.pos[0], self.pos[0]+50)]  # range of steps, each .1 long
 		self.step = 0
-		self.puff_buffer = 10   # timer for how long before creating another puff
+		self.puff_buffer = 0  # timer for how long before creating another puff
+		if direction == "right":
+			self.pic = pygame.transform.flip(self.pic,True,False)								# adjust image oritentation and size
 		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.2*self.height)])
 		self.points,self.poly = mask(self,0,self.width,.9*self.height)
 		self.type = "Tim"
@@ -337,7 +335,7 @@ class Tim(Item):
 	def update(self):
 		# here we update pos based on loop, if start = True, go forward
 		if self.start:
-			if self.step+1 <= len(self.track)-1:
+			if self.step + 1 <= len(self.track) - 1:
 				self.step = self.step + 1
 				self.pos[0] = self.track[self.step]
 			else:
@@ -354,14 +352,27 @@ class Tim(Item):
 		self.points,self.poly = mask(self,0,self.width,self.height)
 
 		# update how many puffs
-
+		if self.puff_buffer > 0:
+			self.puff_buffer = self.puff_buffer - 1
+		else:
+			if len(self.projectiles) < 2:
+				self.projectiles.append(Puff(self.pos[0]+32,self.pos[1]+32))
+				self.puff_buffer = 25
+		
 		# update puff positions
-
+		for puff in self.projectiles:
+			if puff.step <= len(puff.track) - 1:
+				puff.pos[0],puff.pos[1] = puff.track[puff.step][0], puff.track[puff.step][1]
+				puff.step = puff.step + 1
+			else:
+				self.projectiles.remove(puff)
 
 class Puff(Item):
 	def __init__(self,x,y):
 		super().__init__(x,y,50,20,"pics/puff.png",[])
 		self.type = "Puff"
+		self.step = 0
+		self.track = [(i,y + 3*math.sin(i)) for i in range(int(self.pos[0]), int(self.pos[0]+100))]
 		self.points,self.poly = mask(self,0,46,20)
 
 class Player():
@@ -566,6 +577,7 @@ it_3 = Midfont.render("Nash - I mean ASAP",True, BLACK)
 nash_ansr1 = Midfont.render("Uhhhh ....",True, BLACK)
 nash_ansr2 = Midfont.render("fine.",True,BLACK)
 nash_ansr3 = Midfont.render("Just give me five minutes.",True,BLACK)
+
 # -------- Main Program Loop -----------
 while not done:
 	t_0 = time.time()
@@ -656,12 +668,17 @@ while not done:
 			
 			# draw level before nash is drawn
 			curr_lvl.draw(screen,convert_time(300-overall_time))
-			
+
 			# update nash's position
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 			
 			# trigger events for the level
-			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,lvl_stats = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+
+			if curr_lvl.over and curr_lvl.name != "lvl5":
+				#move nash to start postion of next level on level finish (before next level actually starts)
+				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
+				nash.pos[1] = levels[(levels.index(curr_lvl) + 1)].start[1]
 
 			# update enemies (only tim for right now)
 			for entity in curr_lvl.entities:
@@ -671,11 +688,6 @@ while not done:
 					# first puff / adding more puffs / dealing / moving
 					# all contained within tim update
 					# updates position, projectiles, etc.
-			
-			if lvl_stats["over"] and curr_lvl.name != "lvl5":
-				#move nash to start postion of next level on level finish (before next level actually starts)
-				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
-				nash.pos[1] = levels[(levels.index(curr_lvl) + 1)].start[1]
 	
 	# --- update the screen with what we've drawn.
 	pygame.display.flip()
@@ -685,14 +697,14 @@ while not done:
 	t_1 = time.time()
 	if not intro_trigger and not IT_talk_trigger and not pause:
 			overall_time = overall_time + (t_1-t_0)
-			if lvl_stats["banjo"]:
+			if banjo_found:
 				overall_time = overall_time - 5
 	
 	#---- check if you've run out of time
 	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
 		print("nash.timer: ", nash.timer)
 		print("GAME OVER")
-		break
+		done = True
 
 # Close the window and quit.
 # ---> here put lost end screen (if you ran out of time)
