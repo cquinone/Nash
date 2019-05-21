@@ -90,7 +90,8 @@ def entity_collide(screen,nash,keys,lvl):
 					collided = True		
 		
 		#if collided with an entity this loop, move nash and act according to entity type
-		if collided: 
+		if collided:
+			print("COLLIDED WITH: ", entity.type) 
 			if entity.type == "FBI":
 				#pause for a sec or so, draw FBI caught message
 				pygame.time.wait(400)
@@ -119,7 +120,7 @@ def entity_collide(screen,nash,keys,lvl):
 				lvl.entities.remove(entity)
 				banjo = True
 
-			elif entity.type == "Tim":
+			elif entity.type == "Tim" or entity.type == "Puff":
 				#pause for a sec or so
 				pygame.time.wait(900)
 				#set jump and yvel to 0
@@ -127,9 +128,10 @@ def entity_collide(screen,nash,keys,lvl):
 				yvel = 0
 				nash.pos[0] = lvl.start[0] 
 				nash.pos[1] = lvl.start[1]
+				print("New pos to put nash at: ", nash.pos[0],nash.pos[1])
 
-			#elif entity.type == "Puff":
-				# puff gets deleted, nash gets reset
+			# now break collision check loop as you;ve collided with something
+			break
 
 	return nash.pos[0],nash.pos[1], jump, yvel, banjo
 
@@ -152,6 +154,25 @@ class Scene:
 		self.timer = 0
 		self.over = False
 
+	def draw(self,screen,nash_time):
+		screen.fill(WHITE)
+		# draw blocks first
+		for block in self.blocks:
+			screen.blit(block.pic,block.pos)
+		
+		# then entities
+		for entity in self.entities:
+			# make sure to draw projectiles
+			if entity.projectiles:
+				for projectile in entity.projectiles:
+					screen.blit(projectile.pic, projectile.pos)
+
+			screen.blit(entity.pic,entity.pos)
+			pygame.draw.polygon(screen, BLACK,[[entity.points[0][0],entity.points[0][1]],[entity.points[1][0],entity.points[1][1]],[entity.points[2][0],entity.points[2][1]],[entity.points[3][0],entity.points[3][1]]], 2)
+		
+		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
+		screen.blit(time, [0,0])
+
 
 class Title_lvl(Scene):
 	def __init__(self,width,height,screen):
@@ -159,7 +180,7 @@ class Title_lvl(Scene):
 		self.blocks = []
 		self.name = "title"
 
-	def draw(self,screen):
+	def title_draw(self,screen):
 		screen.fill(WHITE)
 		nash_intro	= pygame.image.load("pics/nash_final.png").convert_alpha()
 		nash_intro	= pygame.transform.scale(nash_intro, [int(1.4*int(300*1.14)),int(1.4*int(250*1.2))])
@@ -213,47 +234,19 @@ class Level1(Scene):
 		
 		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,banjo_found
 
-	def draw(self,screen,nash_time):
-		screen.fill(WHITE)
-		#screen.blit(self.pic, [0,0])
-		for block in self.blocks:
-			screen.blit(block.pic,block.pos)
-		for entity in self.entities:
-			screen.blit(entity.pic,entity.pos)
-		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
-		screen.blit(time, [0,0])
-
 
 class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
-					   Block(450,300),Block(400,300)]
+					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,250, "right")]
+		self.entities = [Tim(500,255, "right")] #FBI(730,255,"left")
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [11,101]
-		self.start = [550,240]
+		self.start = [600,245]
 		self.name = "lvl2"
-
-	def draw(self,screen,nash_time):
-		screen.fill(WHITE)
-		# draw blocks first
-		for block in self.blocks:
-			screen.blit(block.pic,block.pos)
-		
-		# then entities
-		for entity in self.entities:
-			# make sure to draw projectiles
-			if entity.projectiles:
-				for projectile in entity.projectiles:
-					screen.blit(projectile.pic, projectile.pos)
-			
-			screen.blit(entity.pic,entity.pos)
-		
-		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
-		screen.blit(time, [0,0])
 
 	def events(self,screen,nash,keys):
 		banjo_found = False
@@ -324,11 +317,11 @@ class Tim(Item):
 		super().__init__(x,y,30,39,"pics/tim.png",[])
 		self.start = True
 		self.track = [i * .8 for i in range(self.pos[0], self.pos[0]+50)]  # range of steps, each .1 long
-		self.step = 0
+		self.step = 20
 		self.puff_buffer = 0  # timer for how long before creating another puff
 		if direction == "right":
 			self.pic = pygame.transform.flip(self.pic,True,False)								# adjust image oritentation and size
-		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.2*self.height)])
+		self.pic = pygame.transform.scale(self.pic, [int(1.1*self.width),int(1.1*self.height)])
 		self.points,self.poly = mask(self,0,self.width,.9*self.height)
 		self.type = "Tim"
 
@@ -349,7 +342,7 @@ class Tim(Item):
 				self.start = True
 
 		# now update mask position
-		self.points,self.poly = mask(self,0,self.width,self.height)
+		self.points,self.poly = mask(self,0,self.width,.9*self.height)
 
 		# update how many puffs
 		if self.puff_buffer > 0:
@@ -359,21 +352,24 @@ class Tim(Item):
 				self.projectiles.append(Puff(self.pos[0]+32,self.pos[1]+32))
 				self.puff_buffer = 25
 		
-		# update puff positions
+		# update puff positions / masks
 		for puff in self.projectiles:
+			puff.points, puff.poly = mask(puff,0,puff.height,puff.width)
 			if puff.step <= len(puff.track) - 1:
 				puff.pos[0],puff.pos[1] = puff.track[puff.step][0], puff.track[puff.step][1]
 				puff.step = puff.step + 1
 			else:
 				self.projectiles.remove(puff)
 
+
 class Puff(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,50,20,"pics/puff.png",[])
+		super().__init__(x,y,20,17,"pics/puff.png",[])
 		self.type = "Puff"
 		self.step = 0
 		self.track = [(i,y + 3*math.sin(i)) for i in range(int(self.pos[0]), int(self.pos[0]+100))]
 		self.points,self.poly = mask(self,0,46,20)
+
 
 class Player():
 	def __init__(self):
@@ -617,8 +613,6 @@ while not done:
 				nash.dir = "left"
 			else:
 				nash.dir = "right"
-		if keys[pygame.K_r]: #reset nash pos for debugging
-			nash.pos = [10,100]
 
 		if event.type == pygame.KEYUP:
 			if not keys[pygame.K_j]:
@@ -636,7 +630,7 @@ while not done:
 	else:
 	    # Intro Page ---> Runs if no ENTER key events have happened
 		if intro_trigger and not IT_talk_trigger:
-			title.draw(screen)
+			title.title_draw(screen)
 		#Secondary intro page  ---> runs after enter key, before lvls
 		if IT_talk_trigger:
 			screen.fill(WHITE)
@@ -684,10 +678,6 @@ while not done:
 			for entity in curr_lvl.entities:
 				if entity.type == "Tim":
 					entity.update()
-					# update puff positions for this tim --> in pff update, deal with too many / pos?
-					# first puff / adding more puffs / dealing / moving
-					# all contained within tim update
-					# updates position, projectiles, etc.
 	
 	# --- update the screen with what we've drawn.
 	pygame.display.flip()

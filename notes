@@ -1,5 +1,5 @@
 use: http://inventwithpython.com/pygame/chapter9.html
-
+pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 
 jan 29
 ----------------------
@@ -81,3 +81,9 @@ may 15
 ---------------------
 make exit point for end of level visible
 change to ijkl for movement
+
+
+may 20th
+--------------------
+after collision, at some point throwing nash over to side of level (near finish, or end?)
+check logic for nash repositioning, resetting, etc. also print nash pos at all times and track
