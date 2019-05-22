@@ -91,7 +91,6 @@ def entity_collide(screen,nash,keys,lvl):
 		
 		#if collided with an entity this loop, move nash and act according to entity type
 		if collided:
-			print("COLLIDED WITH: ", entity.type) 
 			if entity.type == "FBI":
 				#pause for a sec or so, draw FBI caught message
 				pygame.time.wait(400)
@@ -128,7 +127,6 @@ def entity_collide(screen,nash,keys,lvl):
 				yvel = 0
 				nash.pos[0] = lvl.start[0] 
 				nash.pos[1] = lvl.start[1]
-				print("New pos to put nash at: ", nash.pos[0],nash.pos[1])
 
 			# now break collision check loop as you;ve collided with something
 			break
@@ -168,7 +166,6 @@ class Scene:
 					screen.blit(projectile.pic, projectile.pos)
 
 			screen.blit(entity.pic,entity.pos)
-			pygame.draw.polygon(screen, BLACK,[[entity.points[0][0],entity.points[0][1]],[entity.points[1][0],entity.points[1][1]],[entity.points[2][0],entity.points[2][1]],[entity.points[3][0],entity.points[3][1]]], 2)
 		
 		time = Titlefont.render(nash_time,True,RED) #convert time puts it in mins:secs
 		screen.blit(time, [0,0])
@@ -240,12 +237,13 @@ class Level2(Scene):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
-					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300)]
+					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
+					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150)]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,255, "right")] #FBI(730,255,"left")
+		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(160,105,"left")]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [11,101]
-		self.start = [600,245]
+		self.start = [10,55]
 		self.name = "lvl2"
 
 	def events(self,screen,nash,keys):
@@ -349,7 +347,7 @@ class Tim(Item):
 			self.puff_buffer = self.puff_buffer - 1
 		else:
 			if len(self.projectiles) < 2:
-				self.projectiles.append(Puff(self.pos[0]+32,self.pos[1]+32))
+				self.projectiles.append(Puff(self.pos[0]+32,self.pos[1]+28))
 				self.puff_buffer = 25
 		
 		# update puff positions / masks
@@ -367,7 +365,7 @@ class Puff(Item):
 		super().__init__(x,y,20,17,"pics/puff.png",[])
 		self.type = "Puff"
 		self.step = 0
-		self.track = [(i,y + 3*math.sin(i)) for i in range(int(self.pos[0]), int(self.pos[0]+100))]
+		self.track = [(i,y + 3*math.sin(i)) for i in range(int(self.pos[0]), int(self.pos[0]+120))]
 		self.points,self.poly = mask(self,0,46,20)
 
 

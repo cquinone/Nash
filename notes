@@ -1,5 +1,29 @@
 use: http://inventwithpython.com/pygame/chapter9.html
-pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
+			pygame.draw.polygon(screen, BLACK,[[entity.points[0][0],entity.points[0][1]],[entity.points[1][0],entity.points[1][1]],[entity.points[2][0],entity.points[2][1]],[entity.points[3][0],entity.points[3][1]]], 2)
+
+
+- ladder shold be used again in third level, 
+
+- judge (final boss?, if you lose?, ...)
+  ---> gavel?
+  ---> throws spining gavel at you (rotte image in update method)
+
+- troy flying horse as first level exit
+
+- second level a door (into classroom?)
+
+- jerry springer  ---> 408 x 625  (51 x 53) "springer watched, -5"?
+				  ---> circular movement from 0->2pi theta, x=cos, y=sin
+
+- subway ? --> logo or sub + logo, hit == worse
+
+- scooby-doo / meddling kids thing
+
+- "RPI wifi connection established" (upon kitting laptop in third level)
+
+Make whole game work, then copy and change up to make it modular / more exact for bugs / additions / changes
+
+
 
 jan 29
 ----------------------
@@ -26,7 +50,7 @@ jan 31
 ---------------------
 need buffer on masks? that way can't "fall" into it
 ^right now, getting stuck when trying to jump out of block
-or change falling to make sure you never have y corrds that dip into block (somehow do now)
+or change falling to make sure you never have y coords that dip into block (somehow do now)
 
 Might be that need masks and check for jump/fall state
 --> implement those too and check
