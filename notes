@@ -1,6 +1,7 @@
 use: http://inventwithpython.com/pygame/chapter9.html
 			pygame.draw.polygon(screen, BLACK,[[entity.points[0][0],entity.points[0][1]],[entity.points[1][0],entity.points[1][1]],[entity.points[2][0],entity.points[2][1]],[entity.points[3][0],entity.points[3][1]]], 2)
 
+doyle: 314 x 235  --> 52 x 39
 
 - ladder shold be used again in third level, 
 
@@ -20,6 +21,18 @@ use: http://inventwithpython.com/pygame/chapter9.html
 - scooby-doo / meddling kids thing
 
 - "RPI wifi connection established" (upon kitting laptop in third level)
+
+- extra credit?
+
+- move / slightly adjust mid FBI guy on lvl2
+
+- plot nash hitboxes, maybe adjust (especially for jump)
+
+- plot fbi hitboxes
+
+-maybe add ymin to adjust all masks (after game is done)   ----> one way to do this is to shift whole mask up, and shrink the top by a lil
+
+- move blocks so its harder in lvl 1 with new jump height
 
 Make whole game work, then copy and change up to make it modular / more exact for bugs / additions / changes
 

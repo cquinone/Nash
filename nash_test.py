@@ -44,8 +44,9 @@ def convert_time(time):
 	return converted
 
 
-def mask(nash,xmin,xmax,ymax):
+def mask(nash,xmin,xmax,ymax,ymin):
 	#make a polygon that defines collision mask for object
+	ymax = ymax - ymin
 	top_right	= np.array([nash.pos[0]+xmax,nash.pos[1]+ymax]) 
 	top_left	= np.array([nash.pos[0]+xmin,nash.pos[1]+ymax])			
 	btm_right	= np.array([nash.pos[0]+xmax,nash.pos[1]])		#ymin is assumed to always be 0
@@ -67,6 +68,7 @@ def entity_collide(screen,nash,keys,lvl):
 	yvel = nash.yvel
 	jump = nash.jump
 	banjo = False
+	jerry = False
 	all_entities = []  # list to hold entities + projectiles
 	
 	#preprocess entities and throw in projectiles
@@ -128,10 +130,24 @@ def entity_collide(screen,nash,keys,lvl):
 				nash.pos[0] = lvl.start[0] 
 				nash.pos[1] = lvl.start[1]
 
-			# now break collision check loop as you;ve collided with something
+			elif entity.type == "springer":
+				collide_text1 = Startfont.render("Watch 5 episodes of The Jerry Springer Show.", True, BLACK)
+				collide_text2 = Startfont.render("-20 seconds",True, BLACK)
+				screen.fill(WHITE)
+				screen.blit(collide_text1, [WIDTH/2-350,HEIGHT/2])
+				screen.blit(collide_text2, [WIDTH/2-300,HEIGHT/2 + 40])
+				pygame.display.flip()
+				pygame.time.wait(1280)
+				jump = False
+				yvel = 0
+				nash.pos[0] = lvl.start[0] 
+				nash.pos[1] = lvl.start[1]
+				jerry = True
+
+			# now break collision check loop as you've collided with something
 			break
 
-	return nash.pos[0],nash.pos[1], jump, yvel, banjo
+	return nash.pos[0],nash.pos[1], jump, yvel, banjo, jerry
 
 
 class Scene:
@@ -154,7 +170,10 @@ class Scene:
 
 	def draw(self,screen,nash_time):
 		screen.fill(WHITE)
-		# draw blocks first
+		# draw blocks/art first
+		for piece in self.art:
+			screen.blit(piece.pic,piece.pos)
+
 		for block in self.blocks:
 			screen.blit(block.pic,block.pos)
 		
@@ -188,7 +207,7 @@ class Title_lvl(Scene):
 			self.timer = self.timer + 1
 		else:
 			self.timer = self.timer + 1
-			if self.timer > 30: #basically saying: dont draw for ten frames, makes flicker effect
+			if self.timer > 30: #basically saying: dont draw for X frames, makes flicker effect
 				self.timer = 0
 		title = Titlefont.render("- FIVE MINUTES -",True, BLACK)
 		screen.blit(title, [160, 20])
@@ -203,33 +222,37 @@ class Level1(Scene):
 						Block(425,310),Block(607,315),Block(657,315),Block(707,315),Block(-22,580),Block(28,580),Block(78,580),
 						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
 						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
+		
+		self.art = [Item(630,238,104,78,"pics/doyle.png",[]),Item(165,0,100,100,"pics/sun_boi.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Banjo(412,550),Ladder(765,529),Ladder(765,478),Ladder(765,427),
 		                 Ladder(765,376),Ladder(765,325)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [800,600])
-		self.finish = [702,260]
+		self.finish = [672,260]
 		self.start = [10,300]
 		self.name = "lvl1"
 
 	def events(self,screen,nash,keys):
 		banjo_found = False
+		jerry = False
+		
 		#first check if end of level reached
-		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
+		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
 			self.over = True  #
 			#print level end message
 			lvl_over_text1 = Midfont.render("Kris Kristofferson's music",True, BLACK)
 			lvl_over_text2 = Midfont.render("is not a legitimate excuse",True,BLACK)
-			screen.blit(lvl_over_text1, [nash.pos[0]-250,nash.pos[1]-50])
-			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-30])
+			screen.blit(lvl_over_text1, [nash.pos[0]-250,nash.pos[1]-60])
+			screen.blit(lvl_over_text2, [nash.pos[0]-250,nash.pos[1]-40])
 			pygame.display.flip()
 			pygame.time.wait(1320)
 
 		else: # check for collisions with entities (non-blocks), keys = keyboard state			
-			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found = entity_collide(screen,nash,keys,self)
+			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry = entity_collide(screen,nash,keys,self)
 		
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel,banjo_found
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
 
 
 class Level2(Scene):
@@ -238,9 +261,11 @@ class Level2(Scene):
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
 					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
-					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150)]
+					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
+					   Block(212,405),Block(162,405)]
+		self.art = []
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(160,105,"left")]
+		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [11,101]
 		self.start = [10,55]
@@ -248,7 +273,9 @@ class Level2(Scene):
 
 	def events(self,screen,nash,keys):
 		banjo_found = False
-		if abs(nash.pos[0] - self.finish[0]) <= 4 and abs(nash.pos[1] - self.finish[1]) <= 4:
+		jerry = False
+		
+		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
 			self.over = True
 			#print level end message
 			lvl_over_text = Midfont.render("TIM GET OUTTA MY HOUSE",True, BLACK)
@@ -257,9 +284,9 @@ class Level2(Scene):
 			pygame.time.wait(1120)
 		
 		else:
-			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found = entity_collide(screen,nash,keys,self)
+			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry = entity_collide(screen,nash,keys,self)
 		
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found
+		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
 
 
 class Item():
@@ -268,6 +295,7 @@ class Item():
 		self.width  = w 
 		self.height = h
 		self.pic = pygame.image.load(image).convert_alpha()
+		self.pic = pygame.transform.scale(self.pic, [self.width,self.height])
 		self.projectiles = projectiles # only filled for projectile users
 
 
@@ -275,33 +303,37 @@ class Block(Item):
 	def __init__(self,x,y):
 		super().__init__(x,y,50,20,"pics/block.png",[])
 		self.pic.set_colorkey(WHITE)
-		self.points,self.poly = mask(self,0,46,20)
+		self.points,self.poly = mask(self,0,46,20,0)
  
 
 class FBI(Item):
 	def __init__(self,x,y,direction):
-		super().__init__(x,y,30,34,"pics/FBI.png",[])
-		self.pic = pygame.transform.scale(self.pic, [int(1.2*self.width),int(1.3*self.height)])
+		super().__init__(x,y,36,45,"pics/FBI.png",[])
 		self.direction = direction
 		if direction == "right":
 			self.pic = pygame.transform.flip(self.pic,True,False)
-		self.points,self.poly = mask(self,0,1.15*self.width,1.25*self.height) #mask/img go to roughly 36,44
+		self.points,self.poly = mask(self,0,self.width,1.2*self.height,0) #mask/img go to roughly 36,44
 		self.type = "FBI"
+
+
+class Springer(Item):
+	def __init__(self,x,y):
+		super().__init__(x,y,153,165,"pics/jerry2.png",[])
+		self.points,self.poly = mask(self,0,self.width,self.height,0)
+		self.type = "springer"
 
 
 class Ladder(Item):
 	def __init__(self,x,y):
 		super().__init__(x,y,30,51,"pics/ladder.png",[])
-		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)]) 
-		self.points,self.poly = mask(self,0,.85*self.width,self.height)  #mask is thinner to prevent climbing side rails
+		self.points,self.poly = mask(self,0,.85*self.width,self.height,0)  #mask is thinner to prevent climbing side rails
 		self.type = "Ladder"
 
 
 class Banjo(Item):
 	def __init__(self,x,y):
-		super().__init__(x,y,54.3,16,"pics/banjo.png",[])
-		self.pic = pygame.transform.scale(self.pic, [int(self.width),int(self.height)])
-		self.points,self.poly = mask(self,0,self.width,self.height) 
+		super().__init__(x,y,54,16,"pics/banjo.png",[])
+		self.points,self.poly = mask(self,0,self.width,self.height,0) 
 		self.type = "Banjo"
 
 
@@ -312,15 +344,14 @@ class Extra_Credit():
 
 class Tim(Item):
 	def __init__(self,x,y,direction):
-		super().__init__(x,y,30,39,"pics/tim.png",[])
+		super().__init__(x,y,33,43,"pics/tim.png",[])
 		self.start = True
 		self.track = [i * .8 for i in range(self.pos[0], self.pos[0]+50)]  # range of steps, each .1 long
 		self.step = 20
 		self.puff_buffer = 0  # timer for how long before creating another puff
 		if direction == "right":
-			self.pic = pygame.transform.flip(self.pic,True,False)								# adjust image oritentation and size
-		self.pic = pygame.transform.scale(self.pic, [int(1.1*self.width),int(1.1*self.height)])
-		self.points,self.poly = mask(self,0,self.width,.9*self.height)
+			self.pic = pygame.transform.flip(self.pic,True,False)			# adjust image oritentation
+		self.points,self.poly = mask(self,0,self.width,.9*self.height,0)
 		self.type = "Tim"
 
 	def update(self):
@@ -340,7 +371,7 @@ class Tim(Item):
 				self.start = True
 
 		# now update mask position
-		self.points,self.poly = mask(self,0,self.width,.9*self.height)
+		self.points,self.poly = mask(self,0,self.width,.9*self.height,0)
 
 		# update how many puffs
 		if self.puff_buffer > 0:
@@ -352,7 +383,7 @@ class Tim(Item):
 		
 		# update puff positions / masks
 		for puff in self.projectiles:
-			puff.points, puff.poly = mask(puff,0,puff.height,puff.width)
+			puff.points, puff.poly = mask(puff,0,puff.height,puff.width,0)
 			if puff.step <= len(puff.track) - 1:
 				puff.pos[0],puff.pos[1] = puff.track[puff.step][0], puff.track[puff.step][1]
 				puff.step = puff.step + 1
@@ -366,7 +397,7 @@ class Puff(Item):
 		self.type = "Puff"
 		self.step = 0
 		self.track = [(i,y + 3*math.sin(i)) for i in range(int(self.pos[0]), int(self.pos[0]+120))]
-		self.points,self.poly = mask(self,0,46,20)
+		self.points,self.poly = mask(self,0,46,20,0)
 
 
 class Player():
@@ -393,9 +424,9 @@ class Nash(Player):
 		self.jump_pic_right 	= pygame.transform.scale(self.jump_pic_right, [self.width,self.height])
 		self.jump_pic_left	 	= pygame.transform.flip(self.jump_pic_right, True,False)
 		
-		self.idle_points,self.idle_poly = mask(self,8,30,54)   #make vectors/poly for idle mask polygon, for now leave as square
-		self.walk_points,self.walk_poly = mask(self,7,29,54)   #5-19 is nash image (24x34 canvas), mult by 1.6 -> 8x30
-		self.jump_points,self.jump_poly = mask(self,0,38,54)
+		self.idle_points,self.idle_poly = mask(self,8,30,54,0)   #make vectors/poly for idle mask polygon, for now leave as square
+		self.walk_points,self.walk_poly = mask(self,7,29,54,0)   #5-19 is nash image (24x34 canvas), mult by 1.6 -> 8x30
+		self.jump_points,self.jump_poly = mask(self,0,38,54,0)
 		self.yvel = 0									  	   
 		self.old_dir = "right"
 		self.dir = "idle"
@@ -409,6 +440,7 @@ class Nash(Player):
 	def update_pos(self,screen,lvl):
 		new_x = self.pos[0] #default values
 		new_y = self.pos[1]
+		
 		#first check if you're jumping still
 		if self.jump:
 			self.yvel = self.yvel + g*dt
@@ -420,9 +452,9 @@ class Nash(Player):
 				self.pos[1] = new_y	
 		else:
 			self.yvel	= self.yvel + g*dt
-			new_y 		= self.pos[1] + (self.yvel)*dt #check if we are falling by pushing down a lil
+			new_y 		= self.pos[1] + (self.yvel)*dt  #check if we are falling by pushing down a lil
 			self.fall = True
-			if self.collide(new_x,new_y,lvl): #not falling
+			if self.collide(new_x,new_y,lvl):  #not falling
 				self.yvel = 0
 				self.fall = False
 				self.still_fall = False
@@ -434,13 +466,16 @@ class Nash(Player):
 			new_x = self.pos[0] + 6
 		if self.dir == "left":
 			new_x = self.pos[0] - 6
+		
 		#now finally check if new_x will cause a collision
 		if not self.collide(new_x,new_y,lvl):
 			self.pos[0] = new_x
+		
 		#now update masks!
-		self.idle_points,self.idle_poly = mask(self,8,30,54)
-		self.walk_points,self.walk_poly = mask(self,7,29,54)
-		self.jump_points,self.jump_poly = mask(self,0,38,54)
+		self.idle_points,self.idle_poly = mask(self,8,30,54,0)
+		self.walk_points,self.walk_poly = mask(self,7,29,54,0)
+		self.jump_points,self.jump_poly = mask(self,0,38,54,0)
+		
 		#now draw nash in new pos, with correct image for state
 		if self.dir == "right":
 			if not self.jump: #otherwise do jumping pic
@@ -485,13 +520,17 @@ class Nash(Player):
 			if self.old_dir == "left":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_left,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_left_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 			if self.old_dir == "right":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_right,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_right_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 		if self.dir != "idle":
 			self.old_dir = self.dir
 
@@ -502,32 +541,32 @@ class Nash(Player):
 			#save old pos, check with masks updated for new one
 			if self.jump: 
 				self.pos[1] = new_y
-				self.jump_points,self.jump_poly = mask(self,0,38,54)
+				self.jump_points,self.jump_poly = mask(self,0,38,54,0)
 				if self.jump_poly.intersects(block.poly) or not self.outside(lvl,self.jump_poly):  #outside_check covers level collisions
 					self.pos[1] = old_y
-					self.jump_points,self.jump_poly = mask(self,0,38,54)
+					self.jump_points,self.jump_poly = mask(self,0,38,54,0)
 					return True
 			else:
 				self.pos[0] = new_x
 				if self.fall:
 					self.pos[1] = new_y
-				self.idle_points,self.idle_poly = mask(self,8,30,54)	
-				self.walk_points,self.walk_poly = mask(self,7,29,54)
+				self.idle_points,self.idle_poly = mask(self,8,30,54,0)	
+				self.walk_points,self.walk_poly = mask(self,7,29,54,0)
 				if self.dir == "idle":
 					if self.idle_poly.intersects(block.poly)or not self.outside(lvl,self.idle_poly):
 						if self.fall:
 							self.pos[1] = old_y
 						self.pos[0] = old_x
-						self.idle_points,self.idle_poly = mask(self,8,30,54)
-						self.walk_points,self.walk_poly = mask(self,7,29,54)
+						self.idle_points,self.idle_poly = mask(self,8,30,54,0)
+						self.walk_points,self.walk_poly = mask(self,7,29,54,0)
 						return True
 				if self.dir == "right" or self.dir == "left":
 					if self.walk_poly.intersects(block.poly) or not self.outside(lvl,self.walk_poly):
 						if self.fall:
 							self.pos[1] = old_y
 						self.pos[0] = old_x
-						self.idle_points,self.idle_poly = mask(self,8,30,54)
-						self.walk_points,self.walk_poly = mask(self,7,29,54)
+						self.idle_points,self.idle_poly = mask(self,8,30,54,0)
+						self.walk_points,self.walk_poly = mask(self,7,29,54,0)
 						return True
 		#fallback for no collisions
 		return False
@@ -588,7 +627,7 @@ while not done:
 				IT_countr = 0 
 			if keys[pygame.K_i] and nash.jump == False:
 				if nash.still_fall == False:
-					nash.yvel = -35 #scale of jump height
+					nash.yvel = -36 #scale of jump height
 					nash.jump = True
 				else:
 					nash.jump = False
@@ -665,7 +704,7 @@ while not done:
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 			
 			# trigger events for the level
-			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found,jerry = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
 
 			if curr_lvl.over and curr_lvl.name != "lvl5":
 				#move nash to start postion of next level on level finish (before next level actually starts)
@@ -687,6 +726,8 @@ while not done:
 			overall_time = overall_time + (t_1-t_0)
 			if banjo_found:
 				overall_time = overall_time - 5
+			if jerry:
+				overall_time = overall_time + 20
 	
 	#---- check if you've run out of time
 	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
