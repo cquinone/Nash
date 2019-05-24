@@ -261,7 +261,9 @@ class Level2(Scene):
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
 					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
 					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
-					   Block(212,405),Block(162,405),Block(153,580)]
+					   Block(212,405),Block(162,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
+					   Block(402,580),Block(452,580),Block(502,580),Block(552,580),Block(602,580),Block(652,580),Block(702,580),
+					   Block(752,580)]
 		self.art = []
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346)]
@@ -519,17 +521,13 @@ class Nash(Player):
 			if self.old_dir == "left":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_left,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_left_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 			if self.old_dir == "right":
 				if self.yvel != 0 and self.jump:
 					screen.blit(self.jump_pic_right,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
 				else:
 					screen.blit(self.pic_right_idle,self.pos)
-					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
 		if self.dir != "idle":
 			self.old_dir = self.dir
 

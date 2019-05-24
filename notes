@@ -1,6 +1,22 @@
 use: http://inventwithpython.com/pygame/chapter9.html
 			pygame.draw.polygon(screen, BLACK,[[entity.points[0][0],entity.points[0][1]],[entity.points[1][0],entity.points[1][1]],[entity.points[2][0],entity.points[2][1]],[entity.points[3][0],entity.points[3][1]]], 2)
 
+
+				if self.yvel != 0 and self.jump:
+					screen.blit(self.jump_pic_left,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
+				else:
+					screen.blit(self.pic_left_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
+			if self.old_dir == "right":
+				if self.yvel != 0 and self.jump:
+					screen.blit(self.jump_pic_right,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.jump_points[0][0],self.jump_points[0][1]],[self.jump_points[1][0],self.jump_points[1][1]],[self.jump_points[2][0],self.jump_points[2][1]],[self.jump_points[3][0],self.jump_points[3][1]]], 2)
+				else:
+					screen.blit(self.pic_right_idle,self.pos)
+					pygame.draw.polygon(screen, BLACK,[[self.idle_points[0][0],self.idle_points[0][1]],[self.idle_points[1][0],self.idle_points[1][1]],[self.idle_points[2][0],self.idle_points[2][1]],[self.idle_points[3][0],self.idle_points[3][1]]], 2)
+
+
 doyle: 314 x 235  --> 52 x 39
 
 - ladder shold be used again in third level, 
