@@ -274,10 +274,10 @@ class Level2(Scene):
 					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
 					   Block(212,405),Block(162,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
 					   Block(402,580),Block(452,580),Block(502,580),Block(552,580),Block(602,580),Block(652,580),Block(702,580),
-					   Block(752,580),Block(560,420),Block(610,420)]
+					   Block(752,580),Block(560,420),Block(610,420),Block(102,580),Block(52,580),Block(2,580),Block(-48,580)]
 		self.art = [Item(700,492,61,88,"pics/door.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346),Sub(580,385),
+		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,415),Banjo(30,346),Sub(580,385),
 						 Ladder(525,425),Ladder(525,476),Ladder(525,527)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [721,530]
@@ -293,7 +293,39 @@ class Level2(Scene):
 			self.over = True
 			#print level end message
 			lvl_over_text = Midfont.render("TIM GET OUTTA MY HOUSE",True, BLACK)
-			screen.blit(lvl_over_text, [nash.pos[0]-250,nash.pos[1]-50])
+			screen.blit(lvl_over_text, [nash.pos[0]-120,nash.pos[1]-70])
+			pygame.display.flip()
+			pygame.time.wait(1220)
+		
+		else:
+			nash, banjo_found, jerry, sub = entity_collide(screen,nash,keys,self)
+		
+		return nash, banjo_found, jerry, sub
+
+
+class Level3(Scene):
+	def __init__(self,width,height,screen):
+		super().__init__(width,height)
+		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
+		self.blocks = [Block(100,100)]
+		self.art = []
+		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
+		self.entities = []
+		#------------------------------------------------------------------------------------------------------------------------#
+		self.finish = [721,530]
+		self.start = [10,55]
+		self.name = "lvl3"
+
+	def events(self,screen,nash,keys):
+		banjo_found = False
+		jerry = False
+		sub = False
+
+		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
+			self.over = True
+			#print level end message
+			lvl_over_text = Midfont.render("Connecting to RPI network....",True, BLACK)
+			screen.blit(lvl_over_text, [nash.pos[0]-110,nash.pos[1]-60])
 			pygame.display.flip()
 			pygame.time.wait(1220)
 		
@@ -602,6 +634,7 @@ done = False
 clock = pygame.time.Clock()
 intro_trigger = True
 IT_talk_trigger = False
+finalscreen = False
 flickr_count = 0
 #music
 pygame.mixer.music.load('BeepBox-Song.wav')
@@ -613,7 +646,8 @@ nash	= Nash(10,300)
 title	= Title_lvl(WIDTH,HEIGHT,screen)
 lvl1	= Level1(WIDTH+5,HEIGHT,screen)   #+5 on width to prevent sticking on walls
 lvl2	= Level2(WIDTH+5,HEIGHT,screen)
-levels	= [lvl1,lvl2]
+lvl3	= Level3(WIDTH+5,HEIGHT,screen)
+levels	= [lvl1,lvl2, lvl3]
 curr_lvl = None
 r_count = 0  #keep track of what was pressed last
 l_count = 0
@@ -705,12 +739,23 @@ while not done:
 			if IT_countr >= 5:  #195
 				IT_talk_trigger = False
 
+		if finalscreen and not (intro_trigger or IT_talk_trigger):
+			screen.fill(WHITE) # for now, clean it off so we can redraw 
+			
+			# draw level before nash is drawn
+			lvl4.draw(screen,convert_time(300-overall_time))
+
+			# update entitites? --> check if fiels clicked on?
+			# maybe mouse is "character" now, just follows your mouse?
+			# if mouse collides with files --> badabing
+
 		# Regular gameplay --> if not on an intro screen!
-		if not intro_trigger and not IT_talk_trigger:
+		if not intro_trigger and not IT_talk_trigger and not finalscreen:
 			for lvl in levels:
 				if lvl.over == False:
 					curr_lvl = lvl
 					break
+			
 			screen.fill(WHITE) # for now, clean it off so we can redraw 
 			
 			# draw level before nash is drawn
@@ -720,13 +765,16 @@ while not done:
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 			
 			# trigger events for the level
-			#nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found,jerry = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
 			nash, banjo_found, jerry, sub = curr_lvl.events(screen,nash,keys)
 
-			if curr_lvl.over and curr_lvl.name != "lvl5":
+			if curr_lvl.over and curr_lvl.name != "lvl3":
 				#move nash to start postion of next level on level finish (before next level actually starts)
 				nash.pos[0] = levels[(levels.index(curr_lvl) + 1)].start[0]
 				nash.pos[1] = levels[(levels.index(curr_lvl) + 1)].start[1]
+
+			if curr_lvl.over and curr_lvl.name == "lvl3":
+				# now use finalscreen flag to skip this entire loop
+				finalscreen = True
 
 			# update enemies (only tim for right now)
 			for entity in curr_lvl.entities:
@@ -750,10 +798,9 @@ while not done:
 	
 	#---- check if you've run out of time
 	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
-		print("nash.timer: ", nash.timer)
 		print("GAME OVER")
 		done = True
 
 # Close the window and quit.
-# ---> here put lost end screen (if you ran out of time)
+# ---> here put lost end screen (if you ran out of time)  judge thing will go here? background of NASH vs.
 pygame.quit()
