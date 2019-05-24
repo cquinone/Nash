@@ -67,6 +67,7 @@ def entity_collide(screen,nash,keys,lvl):
 	#get current yvel, jump state
 	banjo = False
 	jerry = False
+	sub = False
 	all_entities = []  # list to hold entities + projectiles
 	
 	#preprocess entities and throw in projectiles
@@ -142,10 +143,20 @@ def entity_collide(screen,nash,keys,lvl):
 				nash.pos[1] = lvl.start[1]
 				jerry = True
 
+			elif entity.type == "sub":
+				collide_text1 = Midfont.render("Grab lunch with Jared Fogle",True, BLACK)
+				collide_text2 = Midfont.render("- 1 minute",True, BLACK)
+				screen.blit(collide_text1, [nash.pos[0]-5, nash.pos[1]-30])
+				screen.blit(collide_text2, [nash.pos[0]+30, nash.pos[1]-10])
+				pygame.display.flip()
+				pygame.time.wait(1280)
+				lvl.entities.remove(entity)
+				sub = True
+
 			# now break collision check loop as you've collided with something
 			break
 
-	return nash, banjo, jerry
+	return nash, banjo, jerry, sub
 
 
 class Scene:
@@ -235,6 +246,7 @@ class Level1(Scene):
 	def events(self,screen,nash,keys):
 		banjo_found = False
 		jerry = False
+		sub = False
 		
 		#first check if end of level reached
 		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
@@ -248,10 +260,9 @@ class Level1(Scene):
 			pygame.time.wait(1320)
 
 		else: # check for collisions with entities (non-blocks), keys = keyboard state			
-			nash, banjo_found, jerry = entity_collide(screen,nash,keys,self)
+			nash, banjo_found, jerry, sub = entity_collide(screen,nash,keys,self)
 		
-		#return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
-		return nash, banjo_found, jerry
+		return nash, banjo_found, jerry, sub
 
 
 class Level2(Scene):
@@ -263,31 +274,33 @@ class Level2(Scene):
 					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
 					   Block(212,405),Block(162,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
 					   Block(402,580),Block(452,580),Block(502,580),Block(552,580),Block(602,580),Block(652,580),Block(702,580),
-					   Block(752,580)]
-		self.art = []
+					   Block(752,580),Block(560,420),Block(610,420)]
+		self.art = [Item(700,492,61,88,"pics/door.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346)]
+		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346),Sub(580,385),
+						 Ladder(525,425),Ladder(525,476),Ladder(525,527)]
 		#------------------------------------------------------------------------------------------------------------------------#
-		self.finish = [11,101]
+		self.finish = [721,530]
 		self.start = [10,55]
 		self.name = "lvl2"
 
 	def events(self,screen,nash,keys):
 		banjo_found = False
 		jerry = False
-		
+		sub = False
+
 		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
 			self.over = True
 			#print level end message
 			lvl_over_text = Midfont.render("TIM GET OUTTA MY HOUSE",True, BLACK)
 			screen.blit(lvl_over_text, [nash.pos[0]-250,nash.pos[1]-50])
 			pygame.display.flip()
-			pygame.time.wait(1120)
+			pygame.time.wait(1220)
 		
 		else:
-			nash, banjo_found, jerry = entity_collide(screen,nash,keys,self)
+			nash, banjo_found, jerry, sub = entity_collide(screen,nash,keys,self)
 		
-		return nash, banjo_found, jerry
+		return nash, banjo_found, jerry, sub
 
 
 class Item():
@@ -323,6 +336,12 @@ class Springer(Item):
 		self.points,self.poly = mask(self,0,self.width,self.height,0)
 		self.type = "springer"
 
+
+class Sub(Item):
+	def __init__(self,x,y):
+		super().__init__(x,y,80,32,"pics/sub.png",[])
+		self.points,self.poly = mask(self,0,self.width,self.height,0)
+		self.type = "sub"
 
 class Ladder(Item):
 	def __init__(self,x,y):
@@ -702,7 +721,7 @@ while not done:
 			
 			# trigger events for the level
 			#nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found,jerry = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
-			nash, banjo_found, jerry = curr_lvl.events(screen,nash,keys)
+			nash, banjo_found, jerry, sub = curr_lvl.events(screen,nash,keys)
 
 			if curr_lvl.over and curr_lvl.name != "lvl5":
 				#move nash to start postion of next level on level finish (before next level actually starts)
@@ -726,6 +745,8 @@ while not done:
 				overall_time = overall_time - 5
 			if jerry:
 				overall_time = overall_time + 20
+			if sub:
+				overall_time = overall_time + 60
 	
 	#---- check if you've run out of time
 	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose

@@ -18,8 +18,13 @@ use: http://inventwithpython.com/pygame/chapter9.html
 
 
 doyle: 314 x 235  --> 52 x 39
+sub: 195 x 120  --> 39 x 24
 
-- ladder shold be used again in third level, 
+- ladder shold be used again in third level! 
+
+- load nash vs pic for third level? or for background on loss? --> makes more sense as background
+
+- include actual nash pic somewhere?
 
 - judge (final boss?, if you lose?, ...)
   ---> gavel?
