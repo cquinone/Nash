@@ -65,8 +65,6 @@ def entity_collide(screen,nash,keys,lvl):
 	collided = False
 	
 	#get current yvel, jump state
-	yvel = nash.yvel
-	jump = nash.jump
 	banjo = False
 	jerry = False
 	all_entities = []  # list to hold entities + projectiles
@@ -102,16 +100,16 @@ def entity_collide(screen,nash,keys,lvl):
 				pygame.display.flip()
 				pygame.time.wait(1080)
 				#set jump and yvel to 0
-				jump = False
-				yvel = 0
+				nash.jump = False
+				nash.yvel = 0
 				nash.pos[0] = lvl.start[0]
 				nash.pos[1] = lvl.start[1]
 			
 			elif entity.type == "Ladder":
 				if keys[pygame.K_i]:
 					#send nash up the ladder
-					yvel = -20
-					jump = True
+					nash.yvel = -20
+					nash.jump = True
 			
 			elif entity.type == "Banjo":
 				collide_text = Midfont.render("Banjo found! +5 seconds!", True, BLACK)
@@ -125,8 +123,8 @@ def entity_collide(screen,nash,keys,lvl):
 				#pause for a sec or so
 				pygame.time.wait(900)
 				#set jump and yvel to 0
-				jump = False
-				yvel = 0
+				nash.jump = False
+				nash.yvel = 0
 				nash.pos[0] = lvl.start[0] 
 				nash.pos[1] = lvl.start[1]
 
@@ -137,9 +135,9 @@ def entity_collide(screen,nash,keys,lvl):
 				screen.blit(collide_text1, [WIDTH/2-350,HEIGHT/2])
 				screen.blit(collide_text2, [WIDTH/2-300,HEIGHT/2 + 40])
 				pygame.display.flip()
-				pygame.time.wait(1280)
-				jump = False
-				yvel = 0
+				pygame.time.wait(1620)
+				nash.jump = False
+				nash.yvel = 0
 				nash.pos[0] = lvl.start[0] 
 				nash.pos[1] = lvl.start[1]
 				jerry = True
@@ -147,7 +145,7 @@ def entity_collide(screen,nash,keys,lvl):
 			# now break collision check loop as you've collided with something
 			break
 
-	return nash.pos[0],nash.pos[1], jump, yvel, banjo, jerry
+	return nash, banjo, jerry
 
 
 class Scene:
@@ -250,9 +248,10 @@ class Level1(Scene):
 			pygame.time.wait(1320)
 
 		else: # check for collisions with entities (non-blocks), keys = keyboard state			
-			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry = entity_collide(screen,nash,keys,self)
+			nash, banjo_found, jerry = entity_collide(screen,nash,keys,self)
 		
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
+		#return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
+		return nash, banjo_found, jerry
 
 
 class Level2(Scene):
@@ -262,7 +261,7 @@ class Level2(Scene):
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
 					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
 					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
-					   Block(212,405),Block(162,405)]
+					   Block(212,405),Block(162,405),Block(153,580)]
 		self.art = []
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,435),Banjo(30,346)]
@@ -284,9 +283,9 @@ class Level2(Scene):
 			pygame.time.wait(1120)
 		
 		else:
-			nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry = entity_collide(screen,nash,keys,self)
+			nash, banjo_found, jerry = entity_collide(screen,nash,keys,self)
 		
-		return nash.pos[0],nash.pos[1],nash.jump,nash.yvel, banjo_found, jerry
+		return nash, banjo_found, jerry
 
 
 class Item():
@@ -704,7 +703,8 @@ while not done:
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
 			
 			# trigger events for the level
-			nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found,jerry = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			#nash.pos[0], nash.pos[1],nash.jump,nash.yvel,banjo_found,jerry = curr_lvl.events(screen,nash,keys) #handle events -> item collisions, level "over"
+			nash, banjo_found, jerry = curr_lvl.events(screen,nash,keys)
 
 			if curr_lvl.over and curr_lvl.name != "lvl5":
 				#move nash to start postion of next level on level finish (before next level actually starts)
