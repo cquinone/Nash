@@ -20,7 +20,7 @@ Smallfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
+GREEN = (0,128,127)
 RED = (255, 0, 0)
  
 # Constants
@@ -177,8 +177,8 @@ class Scene:
 		self.timer = 0
 		self.over = False
 
-	def draw(self,screen,nash_time):
-		screen.fill(WHITE)
+	def draw(self,screen,nash_time,color):
+		screen.fill(color)
 		# draw blocks/art first
 		for piece in self.art:
 			screen.blit(piece.pic,piece.pos)
@@ -272,7 +272,7 @@ class Level2(Scene):
 		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
 					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
 					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
-					   Block(212,405),Block(162,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
+					   Block(225,405),Block(175,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
 					   Block(402,580),Block(452,580),Block(502,580),Block(552,580),Block(602,580),Block(652,580),Block(702,580),
 					   Block(752,580),Block(560,420),Block(610,420),Block(102,580),Block(52,580),Block(2,580),Block(-48,580)]
 		self.art = [Item(700,492,61,88,"pics/door.png",[])]
@@ -307,12 +307,12 @@ class Level3(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(100,100)]
+		self.blocks = [Block(10,580)]
 		self.art = []
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = []
 		#------------------------------------------------------------------------------------------------------------------------#
-		self.finish = [721,530]
+		self.finish = [20,520]
 		self.start = [10,55]
 		self.name = "lvl3"
 
@@ -325,7 +325,7 @@ class Level3(Scene):
 			self.over = True
 			#print level end message
 			lvl_over_text = Midfont.render("Connecting to RPI network....",True, BLACK)
-			screen.blit(lvl_over_text, [nash.pos[0]-110,nash.pos[1]-60])
+			screen.blit(lvl_over_text, [nash.pos[0],nash.pos[1]-60])
 			pygame.display.flip()
 			pygame.time.wait(1220)
 		
@@ -333,6 +333,29 @@ class Level3(Scene):
 			nash, banjo_found, jerry, sub = entity_collide(screen,nash,keys,self)
 		
 		return nash, banjo_found, jerry, sub
+
+
+
+class Level4(Scene):
+	def __init__(self,width,height,screen):
+		super().__init__(width,height)
+		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
+		self.blocks = []
+		self.art = [Item(10,80,42,32,"pics/folder.png",[])]
+		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
+		self.entities = []
+		#------------------------------------------------------------------------------------------------------------------------#
+		self.finish = [10,580]
+		self.start = [10,55]
+		self.name = "lvl3"
+		self.cursor = Item(0,0,15,24,"pics/cursor.png",[])
+
+	def events(self,screen):
+		# draw cursor
+		mouse_x, mouse_y = pygame.mouse.get_pos()
+		screen.blit(self.cursor.pic, [mouse_x,mouse_y])
+		# check for clicks
+		# check for thing tossed in trash can
 
 
 class Item():
@@ -643,16 +666,23 @@ call = pygame.image.load("pics/call.png").convert_alpha() #IT image
 call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 #add a nash and generate levels
 nash	= Nash(10,300)
+
+# generate levels
 title	= Title_lvl(WIDTH,HEIGHT,screen)
 lvl1	= Level1(WIDTH+5,HEIGHT,screen)   #+5 on width to prevent sticking on walls
 lvl2	= Level2(WIDTH+5,HEIGHT,screen)
 lvl3	= Level3(WIDTH+5,HEIGHT,screen)
+lvl4	= Level4(WIDTH+5,HEIGHT,screen)
 levels	= [lvl1,lvl2, lvl3]
+
+# some settings
 curr_lvl = None
 r_count = 0  #keep track of what was pressed last
 l_count = 0
 pause = False
-#some things to blit to screen
+pygame.mouse.set_visible(False)
+
+# some things to blit to screen
 pause_text = Titlefont.render("PAUSED",True,RED)
 it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
@@ -742,8 +772,17 @@ while not done:
 		if finalscreen and not (intro_trigger or IT_talk_trigger):
 			screen.fill(WHITE) # for now, clean it off so we can redraw 
 			
-			# draw level before nash is drawn
-			lvl4.draw(screen,convert_time(300-overall_time))
+			# draw cursor wherever mouse currently is, folders, trash can
+			# also lower menu bar? 
+			# folder entities: on click (check how?), display menu showing options that are clickable
+			# meaning create instance of another menu entity thats clickable
+			# need draw function to draw what the state of the level is 
+			# --> so draw open folders if so, only folders that haven't been trashed so far
+			# --> "open" option only on one folder (say other is just image file that on click you see [bluegrass.png])
+			# --> open option is losing? or just shows pixelated nothing
+			
+			lvl4.draw(screen,convert_time(300-overall_time),GREEN)
+			lvl4.events(screen)
 
 			# update entitites? --> check if fiels clicked on?
 			# maybe mouse is "character" now, just follows your mouse?
@@ -759,7 +798,7 @@ while not done:
 			screen.fill(WHITE) # for now, clean it off so we can redraw 
 			
 			# draw level before nash is drawn
-			curr_lvl.draw(screen,convert_time(300-overall_time))
+			curr_lvl.draw(screen,convert_time(300-overall_time),WHITE)
 
 			# update nash's position
 			nash.update_pos(screen,curr_lvl) #this finds new pos of nash based on inputs, and draws him
@@ -775,6 +814,7 @@ while not done:
 			if curr_lvl.over and curr_lvl.name == "lvl3":
 				# now use finalscreen flag to skip this entire loop
 				finalscreen = True
+				#pygame.mouse.set_visible(True)
 
 			# update enemies (only tim for right now)
 			for entity in curr_lvl.entities:
