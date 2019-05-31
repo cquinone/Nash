@@ -2,6 +2,7 @@ import pygame,os
 import pygame.font
 from pygame.locals import *
 from shapely.geometry import Polygon,Point
+from moviepy.editor import *
 import numpy as np
 from matplotlib import pyplot as plt
 import math
@@ -20,7 +21,7 @@ Smallfont = pygame.font.Font(os.path.join(os.sep,"Users", "chrisquinones", "work
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0,128,127)
+GREEN = (0,147,149)
 RED = (255, 0, 0)
  
 # Constants
@@ -131,7 +132,7 @@ def entity_collide(screen,nash,keys,lvl):
 
 			elif entity.type == "springer":
 				collide_text1 = Startfont.render("Watch 5 episodes of The Jerry Springer Show.", True, BLACK)
-				collide_text2 = Startfont.render("-20 seconds",True, BLACK)
+				collide_text2 = Startfont.render("-1 minute",True, BLACK)
 				screen.fill(WHITE)
 				screen.blit(collide_text1, [WIDTH/2-350,HEIGHT/2])
 				screen.blit(collide_text2, [WIDTH/2-300,HEIGHT/2 + 40])
@@ -223,22 +224,21 @@ class Title_lvl(Scene):
 		authors = Smallfont.render("(Created by Chris Quinones and Co.)", True, BLACK)
 		screen.blit(authors, [275,70])
 
+
 class Level1(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(335,355),Block(160,580),
-						Block(425,310),Block(607,315),Block(657,315),Block(707,315),Block(-22,580),Block(28,580),Block(78,580),
-						Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
-						Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
+		self.blocks = [Block(0,450),Block(50,450), Block(100,450), Block(150,450), Block(240,405),Block(405,355),Block(160,580),
+					   Block(607,315),Block(657,315),Block(707,315),Block(-22,580),Block(28,580),Block(78,580),
+					   Block(128,580),Block(178,580),Block(228,580),Block(278,580),Block(328,580),Block(378,580),Block(428,580),
+					   Block(478,580),Block(528,580),Block(578,580),Block(628,580),Block(678,580),Block(728,580),Block(778,580)]
 		
 		self.art = [Item(630,238,104,78,"pics/doyle.png",[]),Item(165,0,100,100,"pics/sun_boi.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = [FBI(561,535.8,"left"),FBI(272,535.8,"right"),Banjo(412,550),Ladder(765,529),Ladder(765,478),Ladder(765,427),
 		                 Ladder(765,376),Ladder(765,325)]
 		#------------------------------------------------------------------------------------------------------------------------#
-		self.pic = pygame.image.load("pics/background1.png").convert_alpha()
-		self.pic = pygame.transform.scale(self.pic, [800,600])
 		self.finish = [672,260]
 		self.start = [10,300]
 		self.name = "lvl1"
@@ -269,16 +269,16 @@ class Level2(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(530,110),Block(480,110),Block(430,110),Block(380,110),Block(500,300),Block(550,300),Block(600,300),
-					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,110),Block(280,110),
-					   Block(350,300),Block(300,300),Block(230,110),Block(80,110),Block(30,110),Block(-20,110),Block(150,150),
+		self.blocks = [Block(530,120),Block(480,120),Block(430,120),Block(380,120),Block(500,300),Block(550,300),Block(600,300),
+					   Block(450,300),Block(400,300),Block(650,300),Block(700,300),Block(750,300),Block(330,120),Block(280,120),
+					   Block(350,300),Block(300,300),Block(230,120),Block(80,120),Block(30,120),Block(-20,120),Block(150,115),
 					   Block(225,405),Block(175,405),Block(152,580),Block(202,580),Block(252,580),Block(302,580),Block(352,580),
 					   Block(402,580),Block(452,580),Block(502,580),Block(552,580),Block(602,580),Block(652,580),Block(702,580),
 					   Block(752,580),Block(560,420),Block(610,420),Block(102,580),Block(52,580),Block(2,580),Block(-48,580)]
 		self.art = [Item(700,492,61,88,"pics/door.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = [Tim(500,255, "right"),FBI(730,255,"left"),FBI(165,105,"left"),Springer(0,415),Banjo(30,346),Sub(580,385),
-						 Ladder(525,425),Ladder(525,476),Ladder(525,527)]
+		self.entities = [Tim(500,255, "right"),FBI(722,255,"left"),FBI(165,70,"left"),Springer(0,415),Banjo(30,346),Sub(580,385),
+						 FBI(430,535,"left"),Ladder(525,425),Ladder(525,476),Ladder(525,527)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [721,530]
 		self.start = [10,55]
@@ -291,7 +291,8 @@ class Level2(Scene):
 
 		if abs(nash.pos[0] - self.finish[0]) <= 10 and abs(nash.pos[1] - self.finish[1]) <= 10:
 			self.over = True
-			#print level end message
+
+			# print level end message
 			lvl_over_text = Midfont.render("TIM GET OUTTA MY HOUSE",True, BLACK)
 			screen.blit(lvl_over_text, [nash.pos[0]-120,nash.pos[1]-70])
 			pygame.display.flip()
@@ -307,13 +308,13 @@ class Level3(Scene):
 	def __init__(self,width,height,screen):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
-		self.blocks = [Block(10,580)]
-		self.art = []
+		self.blocks = [Block(70,580)]
+		self.art = [Item(0,0,800,600,"pics/nash_vs.png",[]),Item(70,544,50,36,"pics/laptop.jpg",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
 		self.entities = []
 		#------------------------------------------------------------------------------------------------------------------------#
-		self.finish = [20,520]
-		self.start = [10,55]
+		self.finish = [80,520]
+		self.start = [10,200]
 		self.name = "lvl3"
 
 	def events(self,screen,nash,keys):
@@ -325,9 +326,9 @@ class Level3(Scene):
 			self.over = True
 			#print level end message
 			lvl_over_text = Midfont.render("Connecting to RPI network....",True, BLACK)
-			screen.blit(lvl_over_text, [nash.pos[0],nash.pos[1]-60])
+			screen.blit(lvl_over_text, [nash.pos[0],nash.pos[1]-63])
 			pygame.display.flip()
-			pygame.time.wait(1220)
+			pygame.time.wait(1330)
 		
 		else:
 			nash, banjo_found, jerry, sub = entity_collide(screen,nash,keys,self)
@@ -341,21 +342,82 @@ class Level4(Scene):
 		super().__init__(width,height)
 		#-----LEVEL CONSTRUCTION-------------------------------------------------------------------------------------------------#
 		self.blocks = []
-		self.art = [Item(10,80,42,32,"pics/folder.png",[])]
+		self.art = [Item(0,562,800,38,"pics/windows95.png",[]), Item(732,482,48,48,"pics/trash.png",[])]
 		#-----ENEMY/ITEM PLACEMENT-----------------------------------------------------------------------------------------------#
-		self.entities = []
+		self.entities = [Folder(18,80)]
 		#------------------------------------------------------------------------------------------------------------------------#
 		self.finish = [10,580]
 		self.start = [10,55]
 		self.name = "lvl3"
 		self.cursor = Item(0,0,15,24,"pics/cursor.png",[])
+		self.start_sound = pygame.mixer.Sound('windows_start.wav')
 
 	def events(self,screen):
+		option = None
+		opened = False
+		trashed = False
+		#blit screen text under everything
+
 		# draw cursor
 		mouse_x, mouse_y = pygame.mouse.get_pos()
 		screen.blit(self.cursor.pic, [mouse_x,mouse_y])
-		# check for clicks
-		# check for thing tossed in trash can
+		
+		# check for clicks and hover
+		hover, entity = self.check_hover(mouse_x,mouse_y)
+		if hover:
+			left_click, right_click, junk = pygame.mouse.get_pressed()
+			if entity.type == "folder" or entity.type == "image_file":
+				if left_click or right_click:
+					self.entities.append(Menu(entity.pos[0]+50, entity.pos[1]+20,"pics/menu.png"))
+			
+			if entity.type == "menu":
+				# highlight right section
+				if mouse_y > entity.pos[1] + 22:
+					pos = entity.pos
+					index = self.entities.index(entity)
+					del(self.entities[index])
+					self.entities.append(Menu(pos[0],pos[1],"pics/menu_blue_low.png"))
+
+					# grab click option
+					if left_click or right_click:
+						option = "delete"
+
+				if mouse_y <= entity.pos[1] + 22:
+					pos = entity.pos
+					index = self.entities.index(entity)
+					del(self.entities[index])
+					self.entities.append(Menu(pos[0],pos[1],"pics/menu_blue_high.png"))
+
+					# grab click option
+					if left_click or right_click:
+						option = "open"
+
+		# handle option if chosen
+		if option:
+			if option == "open":
+				open_text1 = Startfont.render("CONTENT BLOCKED BY DMS IT DEPT.", True, WHITE)
+				open_text2 = Startfont.render("-10 SECONDS",True, WHITE)
+				screen.fill(GREEN)
+				screen.blit(open_text1, [WIDTH/2-350,HEIGHT/2])
+				screen.blit(open_text2, [WIDTH/2-300,HEIGHT/2 + 40])
+				pygame.display.flip()
+				pygame.time.wait(1620)
+				opened = True
+
+			if option == "delete":
+				trashed = True
+
+		return opened, trashed
+
+	def check_hover(self,mouse_x,mouse_y):
+		# check each entity by mouse pos
+		for entity in self.entities:
+			if mouse_x >= entity.pos[0] and mouse_x <= entity.pos[0] + entity.width:
+				if mouse_y >= entity.pos[1] and mouse_y <= entity.pos[1] + entity.height:
+					return 	True, entity
+
+		# if none were hovered on
+		return False, None
 
 
 class Item():
@@ -366,6 +428,18 @@ class Item():
 		self.pic = pygame.image.load(image).convert_alpha()
 		self.pic = pygame.transform.scale(self.pic, [self.width,self.height])
 		self.projectiles = projectiles # only filled for projectile users
+
+
+class Folder(Item):
+	def __init__(self,x,y):
+		super().__init__(x,y,42,32,"pics/folder.png",[])
+		self.type = "folder"
+
+
+class Menu(Item):
+	def __init__(self,x,y,image):
+		super().__init__(x,y,96,44,image,[])
+		self.type = "menu"
 
 
 class Block(Item):
@@ -659,12 +733,12 @@ intro_trigger = True
 IT_talk_trigger = False
 finalscreen = False
 flickr_count = 0
+
 #music
 pygame.mixer.music.load('BeepBox-Song.wav')
-#pygame.mixer.music.play(-1)
-call = pygame.image.load("pics/call.png").convert_alpha() #IT image
-call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
-#add a nash and generate levels
+pygame.mixer.music.play(-1)
+
+#add a nash
 nash	= Nash(10,300)
 
 # generate levels
@@ -683,6 +757,8 @@ pause = False
 pygame.mouse.set_visible(False)
 
 # some things to blit to screen
+call = pygame.image.load("pics/call.png").convert_alpha() #IT image
+call = pygame.transform.scale(call, [WIDTH,HEIGHT+30])
 pause_text = Titlefont.render("PAUSED",True,RED)
 it_1 = Midfont.render("Hey, this is Tom from IT.",True, BLACK)
 it_2 = Midfont.render("We need to check your laptop.",True, BLACK)
@@ -766,27 +842,15 @@ while not done:
 				screen.blit(nash_ansr2, [410,460])
 			if IT_countr >= 160:
 				screen.blit(nash_ansr3, [330,480])
-			if IT_countr >= 5:  #195
+			if IT_countr >= 195:  #195
 				IT_talk_trigger = False
 
 		if finalscreen and not (intro_trigger or IT_talk_trigger):
-			screen.fill(WHITE) # for now, clean it off so we can redraw 
+			# prep level 4 computer screen setup
 			
-			# draw cursor wherever mouse currently is, folders, trash can
-			# also lower menu bar? 
-			# folder entities: on click (check how?), display menu showing options that are clickable
-			# meaning create instance of another menu entity thats clickable
-			# need draw function to draw what the state of the level is 
-			# --> so draw open folders if so, only folders that haven't been trashed so far
-			# --> "open" option only on one folder (say other is just image file that on click you see [bluegrass.png])
-			# --> open option is losing? or just shows pixelated nothing
-			
+			screen.fill(WHITE) # for now, clean it off so we can redraw 			
 			lvl4.draw(screen,convert_time(300-overall_time),GREEN)
-			lvl4.events(screen)
-
-			# update entitites? --> check if fiels clicked on?
-			# maybe mouse is "character" now, just follows your mouse?
-			# if mouse collides with files --> badabing
+			opened, trashed = lvl4.events(screen)
 
 		# Regular gameplay --> if not on an intro screen!
 		if not intro_trigger and not IT_talk_trigger and not finalscreen:
@@ -814,7 +878,10 @@ while not done:
 			if curr_lvl.over and curr_lvl.name == "lvl3":
 				# now use finalscreen flag to skip this entire loop
 				finalscreen = True
-				#pygame.mouse.set_visible(True)
+				opened = False
+				trashed = False
+				pygame.mixer.music.stop()
+				lvl4.start_sound.play()
 
 			# update enemies (only tim for right now)
 			for entity in curr_lvl.entities:
@@ -831,16 +898,39 @@ while not done:
 			overall_time = overall_time + (t_1-t_0)
 			if banjo_found:
 				overall_time = overall_time - 5
-			if jerry:
-				overall_time = overall_time + 20
-			if sub:
+			if jerry or sub:
 				overall_time = overall_time + 60
+			if finalscreen:
+				if opened:
+					overall_time = overall_time + 10
 	
 	#---- check if you've run out of time
-	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:   #if you lose
-		print("GAME OVER")
+	if overall_time >= 300 and not intro_trigger and not IT_talk_trigger:
+		time_text1 = Startfont.render("OUT OF TIME!.", True, BLACK)
+		time_text2 = Startfont.render("THE FBI FINDS THE FILES AND NASH GOES TO COURT",True, BLACK)
+		screen.fill(WHITE)
+		screen.blit(time_text1, [WIDTH/2-350,HEIGHT/2])
+		screen.blit(time_text2, [WIDTH/2-300,HEIGHT/2 + 40])
+		pygame.display.flip()
+		pygame.time.wait(1620)
 		done = True
 
+	#---- check end condition
+	if finalscreen:
+		if trashed:
+			trash_text1 = Startfont.render("NASH MANAGES TO DELETE THE INCRIMINATING FILES.", True, WHITE)
+			trash_text2 = Startfont.render("BUT IS IT ENOUGH.....?",True, WHITE)
+			screen.fill(GREEN)
+			screen.blit(trash_text1, [WIDTH/2-350,HEIGHT/2])
+			screen.blit(trash_text2, [WIDTH/2-300,HEIGHT/2 + 40])
+			pygame.display.flip()
+			pygame.time.wait(1620)
+			done = True
+
+# clip to show after time or files trashed
+if done:
+	clip = VideoFileClip('nash.mp4')
+	clip.preview()
+
 # Close the window and quit.
-# ---> here put lost end screen (if you ran out of time)  judge thing will go here? background of NASH vs.
 pygame.quit()

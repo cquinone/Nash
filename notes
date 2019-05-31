@@ -19,7 +19,9 @@ use: http://inventwithpython.com/pygame/chapter9.html
 
 doyle: 314 x 235  --> 52 x 39
 sub: 195 x 120  --> 39 x 24
-curose: 1516 x 2400  -->  20 x 31
+cursor: 1516 x 2400  -->  20 x 31
+menu bar: 556 x 27 --> 800 x 38
+laptop: 338 x 242  --> 50 x 36
 
 - load nash vs pic for third level? or for background on loss? --> makes more sense as background
 
@@ -56,8 +58,7 @@ curose: 1516 x 2400  -->  20 x 31
 ----> NEED: More on final screen that is latop interface: start menu, DMS logo + school issued, trash can, ....
 
 
----------> CHECK WHATEVER TIME LEFT, AND ON THIRD LEVEL, DROP TO FUN AMOUNT LEFT FOR LAST SCREEN PART!!!
-
+laptop pic, menu pic
 
 
 jan 29
